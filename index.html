@@ -744,7 +744,7 @@ function loadRound() {
   document.getElementById('enemy-sub').textContent = s.enzymeSub;
   setActivity(s.activityStart);
 
-  // 효소 이미지 — 텍스트 이름 먼저 설정 후 이미지 로드
+  // 효소 이미지
   const img = document.getElementById('enzyme-img');
   const fallback = document.getElementById('enzyme-text-fallback');
   const textName = document.getElementById('enzyme-text-name');
@@ -752,23 +752,59 @@ function loadRound() {
   fallback.style.display = 'none';
   img.style.display = 'block';
   img.src = '';
-  img.src = s.enzymeImg;
 
   // 결과 오버레이 숨김
   document.getElementById('result-overlay').classList.remove('show');
 
-  // 버튼 초기화
-  const shuffled = shuffleArray([...s.options]);
-  for (let i = 0; i < 4; i++) {
-    const btn = document.getElementById(`btn${i}`);
-    btn.textContent = shuffled[i].text;
-    btn.dataset.idx = s.options.indexOf(shuffled[i]);
-    btn.className = 'action-btn';
-    btn.disabled = false;
-  }
+  // 버튼 숨김 (인트로 동안)
+  setButtonsVisible(false);
 
-  // 배틀 텍스트
-  typeText(s.situation);
+  // 에너지 뱃지
+  document.getElementById('energy-badge').textContent = s.energyBadge;
+
+  // ── 인트로 시퀀스 ──
+  // 1) 스프라이트 숨긴 상태에서 등장 텍스트
+  const spriteArea = document.getElementById('enemy-sprite-area');
+  spriteArea.style.opacity = '0';
+  spriteArea.style.transform = 'translateX(80px)';
+  spriteArea.style.transition = 'none';
+
+  const introName = s.enzyme.split('\n')[0]; // 줄바꿈 있으면 첫 줄만
+  typeText(`앗! 야생의 ${introName}이(가) 등장했다!`, () => {
+    // 2) 이미지 로드 후 슬라이드인
+    img.onload = () => {
+      spriteArea.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+      spriteArea.style.opacity = '1';
+      spriteArea.style.transform = 'translateX(0)';
+    };
+    img.onerror = () => {
+      img.style.display = 'none';
+      fallback.style.display = 'flex';
+      spriteArea.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+      spriteArea.style.opacity = '1';
+      spriteArea.style.transform = 'translateX(0)';
+    };
+    img.src = s.enzymeImg;
+
+    // 3) 1.5초 후 상황 텍스트 + 버튼 표시
+    setTimeout(() => {
+      // 버튼 초기화
+      const shuffled = shuffleArray([...s.options]);
+      for (let i = 0; i < 4; i++) {
+        const btn = document.getElementById(`btn${i}`);
+        btn.textContent = shuffled[i].text;
+        btn.dataset.idx = s.options.indexOf(shuffled[i]);
+        btn.className = 'action-btn';
+        btn.disabled = false;
+      }
+      setButtonsVisible(true);
+      typeText(s.situation);
+    }, 1500);
+  });
+}
+
+function setButtonsVisible(visible) {
+  document.getElementById('action-area').style.visibility = visible ? 'visible' : 'hidden';
 }
 
 function setActivity(val) {
@@ -860,9 +896,9 @@ function retryGame() {
   loadRound();
 }
 
-// 타이핑 효과
+// 타이핑 효과 (콜백 지원)
 let typeTimer = null;
-function typeText(text) {
+function typeText(text, onDone) {
   const el = document.getElementById('battle-text');
   if (typeTimer) clearInterval(typeTimer);
   el.innerHTML = '';
@@ -875,6 +911,7 @@ function typeText(text) {
     } else {
       el.innerHTML = text.replace(/\n/g, '<br>');
       clearInterval(typeTimer);
+      if (onDone) onDone();
     }
   }, 30);
 }
