@@ -27,176 +27,128 @@
     box-shadow: 0 0 40px rgba(0,0,0,0.8);
   }
 
-  /* ── 배틀 필드: 어두운 숲 배경 ── */
-  #battle-field {
-    height: 310px;
+  /* ─── 배틀 래퍼: 이미지 비율 유지 ─── */
+  #battle-wrapper {
     position: relative;
+    width: 100%;
+    aspect-ratio: 1371 / 768;
+    background: url('images/battle-bg.png') center/cover no-repeat;
     overflow: hidden;
-    background: url('images/battle-bg.png') center center / cover no-repeat;
   }
 
-  #battle-field::before { content: none; }
-
-  /* 플랫폼 타원 그림자 */
-  .platform {
+  /* ─── 상단 바 ─── */
+  #top-bar {
     position: absolute;
-    border-radius: 50%;
-    background: radial-gradient(ellipse, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.06) 50%, transparent 100%);
+    top: 0; left: 0; right: 0;
+    height: 5%;
+    background: rgba(0,0,0,0.55);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 2%;
+    font-size: clamp(8px, 1.4vw, 11px);
+    color: #fff;
+    z-index: 5;
   }
-  /* 적 플랫폼: 우측, 위쪽 (멀리) */
-  #enemy-platform {
-    width: 120px; height: 18px;
-    top: 172px; right: 90px;
-  }
-  /* 플레이어 플랫폼: 좌측, 아래쪽 (가까이) */
-  #player-platform {
-    width: 200px; height: 36px;
-    bottom: 36px; left: 44px;
-  }
+  #round-info { font-weight: bold; color: #ffe44d; }
+  #score-info { color: #ccc; }
 
-  /* ── 플레이어 HUD: 좌상단 (겹곽) ── */
-  #player-hud {
+  /* ─── 적 HUD: 이미지 좌상단 박스 ─── */
+  #enemy-hud {
     position: absolute;
-    top: 12px; left: 0;
-    background: #f0ede0;
-    border: 2px solid #222;
-    border-left: none;
-    border-radius: 0 10px 10px 0;
-    padding: 7px 14px 7px 12px;
-    min-width: 190px;
-    /* 겹곽: 안쪽 테두리 + 바깥 그림자 */
-    box-shadow: 3px 3px 0 #222, inset 0 0 0 2px #c8c0a0;
+    left: 2%; top: 14%;
+    width: 42%;
+    background: rgba(0,0,0,0.25);
+    padding: 1% 2%;
+    color: #eee;
     z-index: 2;
   }
-  #player-name-row {
-    display: flex; justify-content: space-between; align-items: baseline;
-    margin-bottom: 3px;
-  }
-  #player-label { font-size: 12px; font-weight: 900; color: #222; }
-  #player-lv    { font-size: 10px; color: #555; }
-  .hud-bar-label { font-size: 9px; font-weight: bold; color: #444; }
-  .bar-track {
-    width: 130px; height: 6px;
-    background: #888;
-    border-radius: 3px;
-    overflow: hidden;
-    margin: 2px 0 2px;
-    display: inline-block;
-  }
-  .bar-fill {
-    height: 100%;
-    border-radius: 3px;
-    transition: width 0.6s ease, background 0.4s;
-  }
+  #enemy-trainer { font-size: clamp(6px, 0.9vw, 8px); color: #bbb; margin-bottom: 1%; }
+  #enemy-name-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.5%; }
+  #enemy-name { font-size: clamp(9px, 1.5vw, 12px); font-weight: 900; }
+  #enemy-lv   { font-size: clamp(7px, 1vw, 9px); color: #bbb; }
+  #enemy-sub  { font-size: clamp(6px, 0.9vw, 8px); color: #ccc; margin-bottom: 1%; }
+  .bar-row { display: flex; align-items: center; gap: 3%; }
+  .hud-bar-label { font-size: clamp(6px, 1vw, 8px); font-weight: bold; color: #eee; white-space: nowrap; }
+  .bar-track { flex: 1; height: 5px; background: #555; border-radius: 2px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 2px; transition: width 0.6s ease, background 0.4s; }
   .bar-fill.high { background: #50c040; }
   .bar-fill.mid  { background: #e8c010; }
   .bar-fill.low  { background: #e04040; }
+  #activity-val { font-size: clamp(6px, 1vw, 8px); color: #ccc; white-space: nowrap; }
 
-  /* ── 적(효소) HUD: 우상단 (겹곽) ── */
-  #enemy-hud {
-    position: absolute;
-    top: 12px; right: 0;
-    background: #f0ede0;
-    border: 2px solid #222;
-    border-right: none;
-    border-radius: 10px 0 0 10px;
-    padding: 7px 12px 7px 14px;
-    min-width: 200px;
-    box-shadow: -3px 3px 0 #222, inset 0 0 0 2px #c8c0a0;
-    z-index: 2;
-    text-align: right;
-  }
-  #enemy-trainer {
-    font-size: 9px;
-    color: #888;
-    margin-bottom: 2px;
-    letter-spacing: 0.5px;
-  }
-  #enemy-name-row {
-    display: flex; justify-content: space-between; align-items: baseline;
-    margin-bottom: 3px;
-  }
-  #enemy-name { font-size: 12px; font-weight: 900; color: #222; }
-  #enemy-lv   { font-size: 10px; color: #555; }
-  #enemy-sub  { font-size: 9px; color: #777; margin-bottom: 3px; text-align: right; }
-  .bar-row { display: flex; align-items: center; justify-content: flex-end; gap: 4px; }
-  #activity-val { font-size: 9px; color: #555; white-space: nowrap; }
-
-  /* ── 적 스프라이트: 우측 상단 (멀리, 작게) ── */
+  /* ─── 적 스프라이트: 우측 언덕 ─── */
   #enemy-sprite-area {
     position: absolute;
-    top: 60px; right: 80px;
-    width: 120px; height: 120px;
+    right: 18%; top: 8%;
+    width: 26%; height: 44%;
     display: flex; align-items: flex-end; justify-content: center;
   }
-  #enzyme-img {
-    max-width: 115px;
-    max-height: 115px;
-    object-fit: contain;
-    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.6));
-  }
+  #enzyme-img { max-width: 100%; max-height: 100%; object-fit: contain; filter: drop-shadow(0 3px 6px rgba(0,0,0,0.7)); }
   #enzyme-text-fallback {
     display: none;
-    width: 115px; height: 115px;
+    width: 90%; height: 80%;
     align-items: center; justify-content: center;
-    font-size: 13px;
-    font-weight: 900;
-    color: #fff;
-    text-shadow: 1px 1px 4px #000;
-    text-align: center;
-    line-height: 1.3;
-    background: rgba(30,60,100,0.7);
-    border-radius: 12px;
-    border: 2px solid rgba(150,200,255,0.4);
-    padding: 10px;
+    font-size: clamp(8px, 1.4vw, 11px); font-weight: 900; color: #fff;
+    text-shadow: 1px 1px 3px #000; text-align: center; line-height: 1.3;
+    background: rgba(20,50,90,0.8); border-radius: 8px; padding: 5%;
   }
 
-  /* ── 플레이어 스프라이트: 좌측 하단 (가까이, 크게, 뒷모습) ── */
+  /* ─── 플레이어 스프라이트 ─── */
   #player-icon {
     position: absolute;
-    bottom: 38px; left: 48px;
-    width: 120px; height: 120px;
+    left: 4%; top: 50%;
+    width: 13%; height: 20%;
     display: flex; align-items: center; justify-content: center;
-    font-size: 52px;
-    filter: brightness(0.7) drop-shadow(0 6px 12px rgba(0,0,0,0.7));
+    font-size: clamp(20px, 4.5vw, 44px);
+    filter: brightness(0.7) drop-shadow(0 3px 7px rgba(0,0,0,0.8));
+  }
+  #selected-factor {
+    position: absolute;
+    left: 4%; top: 50%;
+    width: 13%; height: 20%;
+    display: none;
+    align-items: center; justify-content: center;
+    flex-direction: column; gap: 4%;
+  }
+  #selected-factor-icon { font-size: clamp(18px, 3.5vw, 38px); }
+  #selected-factor-name {
+    font-size: clamp(6px, 1vw, 8px); font-weight: 900; color: #fff;
+    text-shadow: 1px 1px 3px #000; text-align: center;
+    background: rgba(0,0,0,0.6); padding: 1px 6px; border-radius: 6px;
   }
 
-  /* ── 하단 전체 영역: 텍스트 위 + 파티 아래 ── */
-  #bottom-section {
-    display: flex;
-    flex-direction: column;
-    border-top: 3px solid #222;
+  /* ─── 플레이어 HUD: 이미지 우측 하단 박스 ─── */
+  #player-hud {
+    position: absolute;
+    left: 55%; top: 48%;
+    width: 44%;
+    background: rgba(0,0,0,0.25);
+    padding: 1% 2%;
+    color: #eee;
+    z-index: 2;
   }
+  #player-name-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1%; }
+  #player-label { font-size: clamp(7px, 1.2vw, 10px); font-weight: 900; }
+  #player-lv    { font-size: clamp(6px, 1vw, 8px); color: #bbb; }
+  #energy-badge { font-size: clamp(6px, 0.9vw, 8px); color: #ffcc44; margin-bottom: 1%; }
 
-  /* 텍스트 박스: 상단 */
+  /* ─── 텍스트 박스: 하단 좌 ─── */
   #text-box {
-    background: #e8e0cc;
-    padding: 10px 14px;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    min-height: 60px;
-    overflow: hidden;
+    position: absolute;
+    left: 0; bottom: 0;
+    width: 63%; height: 24%;
+    background: transparent;
+    padding: 2% 3%;
+    display: flex; flex-direction: column; justify-content: center;
+    z-index: 2;
   }
-  #energy-badge {
-    font-size: 10px;
-    font-weight: bold;
-    color: #555;
-    margin-bottom: 5px;
-  }
-  #battle-text {
-    font-size: 13px;
-    color: #111;
-    line-height: 1.65;
-    white-space: pre-line;
-  }
+  #battle-text { font-size: clamp(9px, 1.6vw, 13px); color: #fff; line-height: 1.6; white-space: pre-line; }
   #text-cursor {
     display: inline-block;
-    width: 7px; height: 13px;
-    background: #333;
-    margin-left: 2px;
-    animation: blink 0.8s infinite;
-    vertical-align: middle;
+    width: clamp(5px, 0.9vw, 8px); height: clamp(9px, 1.6vw, 13px);
+    background: #fff; margin-left: 2px;
+    animation: blink 0.8s infinite; vertical-align: middle;
   }
   @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
   @keyframes shake {
@@ -207,138 +159,75 @@
     80%     { transform: translateX(6px); }
   }
 
-  /* ── 파티 선택 패널 (전체 너비) ── */
+  /* ─── 액션 영역: 하단 우 ─── */
   #action-area {
-    width: 100%;
-    background: #1a1a2e;
-    padding: 8px 10px;
+    position: absolute;
+    right: 0; bottom: 0;
+    width: 37%; height: 25%;
+    background: transparent;
+    padding: 1%;
     display: grid;
     grid-template-columns: 1fr 1fr;
     grid-template-rows: 1fr 1fr;
-    gap: 6px;
-    border-top: 3px solid #444;
-    box-sizing: border-box;
+    gap: 3px;
+    z-index: 2;
+    visibility: hidden;
   }
+  .btn-grid { display: contents; }
+  #phase-header { display: none; }
 
-  /* 파티원 카드 */
+  /* 인자 선택 버튼 */
   .action-btn {
-    background: #2a2a42;
-    border: 2px solid #555;
-    border-radius: 8px;
-    padding: 6px 8px;
+    background: rgba(15,10,25,0.88);
+    border: 1px solid #666;
+    border-radius: 4px;
+    padding: 3% 5%;
     cursor: pointer;
-    transition: all 0.15s;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    text-align: left;
-    box-shadow: inset 0 0 0 1px #3a3a5a;
-    position: relative;
-    overflow: hidden;
+    display: flex; align-items: center; gap: 6%;
+    text-align: left; overflow: hidden;
+    transition: background 0.12s, border-color 0.12s;
   }
-  .action-btn:hover:not(:disabled) {
-    background: #3a3a5a;
-    border-color: #aaa;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.5), inset 0 0 0 1px #6a6a9a;
-  }
+  .action-btn:hover:not(:disabled) { background: rgba(55,40,75,0.95); border-color: #bbb; }
   .action-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .action-btn.selected { animation: cardSelect 0.4s ease forwards; }
+  .action-btn.correct  { border-color: #50cc70; background: rgba(15,50,25,0.9); }
+  .action-btn.wrong    { border-color: #ff6060; background: rgba(55,15,15,0.9); }
 
-  /* 파티원 아이콘 */
-  .party-icon {
-    width: 38px; height: 38px;
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 20px;
-    flex-shrink: 0;
-    border: 2px solid rgba(255,255,255,0.2);
-  }
-
-  /* 파티원 정보 */
+  .party-icon { font-size: clamp(12px, 2vw, 18px); flex-shrink: 0; line-height: 1; }
   .party-info { flex: 1; min-width: 0; }
-  .party-name {
-    font-size: 12px;
-    font-weight: 900;
-    color: #fff;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    line-height: 1.2;
-    margin-bottom: 3px;
-  }
-  .party-sub {
-    font-size: 9px;
-    color: #aaa;
-    line-height: 1.2;
-  }
-  .party-hp-track {
-    width: 100%; height: 4px;
-    background: #444;
-    border-radius: 2px;
-    margin-top: 4px;
-    overflow: hidden;
-  }
-  .party-hp-fill {
-    height: 100%;
-    border-radius: 2px;
-    transition: width 0.3s;
-  }
+  .party-name { font-size: clamp(7px, 1.1vw, 9px); font-weight: 900; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .party-sub { display: none; }
+  .party-hp-track { display: none; }
+  .party-hp-fill  { display: none; }
 
-  /* 카드 색상 테마 */
-  .theme-red   .party-icon { background: #5a1a1a; }
-  .theme-red   .party-hp-fill { background: #ff6060; width: 85%; }
-  .theme-blue  .party-icon { background: #1a2a5a; }
-  .theme-blue  .party-hp-fill { background: #6090ff; width: 90%; }
-  .theme-green .party-icon { background: #1a4a2a; }
-  .theme-green .party-hp-fill { background: #50cc70; width: 75%; }
-  .theme-gold  .party-icon { background: #4a3a0a; }
-  .theme-gold  .party-hp-fill { background: #ffcc30; width: 80%; }
+  .theme-red   { border-color: #ff7070; }
+  .theme-blue  { border-color: #7090ff; }
+  .theme-green { border-color: #50cc70; }
+  .theme-gold  { border-color: #ffcc30; }
 
-  /* 선택 애니메이션 */
   @keyframes cardSelect {
     0%   { transform: scale(1); }
-    30%  { transform: scale(1.08); background: #5a5a8a; }
+    30%  { transform: scale(1.06); }
     100% { transform: scale(1); opacity: 0.5; }
   }
-  .action-btn.selected { animation: cardSelect 0.4s ease forwards; }
-  .action-btn.correct  { border-color: #50cc70; background: #1a3a2a; }
-  .action-btn.wrong    { border-color: #ff6060; background: #3a1a1a; }
 
-  /* 단계 헤더 */
-  #phase-header {
-    grid-column: 1 / -1;
-    padding: 2px 4px;
-    font-size: 10px;
-    color: #aaa;
-    letter-spacing: 0.5px;
-  }
-  .btn-grid {
-    display: contents; /* action-area의 grid에 합류 */
-  }
-
-  /* 기술 버튼 (무브 리스트 스타일) */
+  /* 기술 버튼 */
   .move-btn {
-    background: #22223a;
-    border: 2px solid #555;
-    border-radius: 6px;
-    padding: 8px 12px;
+    background: rgba(15,10,25,0.88);
+    border: 1px solid #666;
+    border-radius: 4px;
+    padding: 3% 4%;
     color: #fff;
-    font-size: 12px;
-    font-weight: bold;
-    cursor: pointer;
-    text-align: center;
-    transition: all 0.12s;
-    white-space: pre-line;
-    line-height: 1.4;
+    font-size: clamp(7px, 1.1vw, 9px);
+    font-weight: bold; cursor: pointer;
+    text-align: center; word-break: keep-all; line-height: 1.3;
+    transition: background 0.12s, border-color 0.12s;
+    overflow: hidden;
   }
-  .move-btn:hover:not(:disabled) {
-    background: #3a3a5a;
-    border-color: #aaa;
-    transform: translateY(-1px);
-  }
+  .move-btn:hover:not(:disabled) { background: rgba(55,40,75,0.95); border-color: #bbb; }
   .move-btn:disabled { opacity: 0.45; cursor: not-allowed; }
-  .move-btn.correct  { border-color: #50cc70; background: #1a3a2a; }
-  .move-btn.wrong    { border-color: #ff6060; background: #3a1a1a; }
+  .move-btn.correct  { border-color: #50cc70; background: rgba(15,50,25,0.9); }
+  .move-btn.wrong    { border-color: #ff6060; background: rgba(55,15,15,0.9); }
 
   /* ── 결과 오버레이 ── */
   #result-overlay {
@@ -493,29 +382,15 @@
 
   <!-- 배틀 화면 -->
   <div id="battle-screen">
-    <div id="top-bar">
-      <span id="round-info">Round 1 / 8</span>
-      <span id="score-info">점수: 0</span>
-    </div>
+    <div id="battle-wrapper">
 
-    <div id="battle-field">
-      <!-- 플랫폼 -->
-      <div class="platform" id="enemy-platform"></div>
-      <div class="platform" id="player-platform"></div>
-
-      <!-- 플레이어 HUD: 좌상단 -->
-      <div id="player-hud">
-        <div id="player-name-row">
-          <span id="player-label">🔬 해당 과정 연구자</span>
-          <span id="player-lv">Lv.1</span>
-        </div>
-        <div class="hud-bar-label">HP</div>
-        <div class="bar-track" style="width:130px;">
-          <div class="bar-fill high" style="width:100%"></div>
-        </div>
+      <!-- 라운드/점수 바 -->
+      <div id="top-bar">
+        <span id="round-info">Round 1 / 8</span>
+        <span id="score-info">점수: 0</span>
       </div>
 
-      <!-- 적(효소) HUD: 우상단 -->
+      <!-- 적(효소) HUD: 이미지 좌상단 박스 -->
       <div id="enemy-hud">
         <div id="enemy-trainer">⚗️ 생명과학</div>
         <div id="enemy-name-row">
@@ -525,14 +400,14 @@
         <div id="enemy-sub">3단계 조절 효소</div>
         <div class="bar-row">
           <span class="hud-bar-label">활성도</span>
-          <div class="bar-track" style="width:110px;">
+          <div class="bar-track">
             <div class="bar-fill high" id="activity-fill" style="width:80%"></div>
           </div>
           <span id="activity-val">80%</span>
         </div>
       </div>
 
-      <!-- 적 스프라이트: 우측 상단 (멀리, 작게) -->
+      <!-- 적 스프라이트: 이미지 우측 언덕 -->
       <div id="enemy-sprite-area">
         <img id="enzyme-img" src="" alt="효소"
           onerror="this.style.display='none'; document.getElementById('enzyme-text-fallback').style.display='flex'">
@@ -541,11 +416,46 @@
         </div>
       </div>
 
-      <!-- 플레이어 스프라이트 / 선택된 조절인자 -->
+      <!-- 플레이어 스프라이트 -->
       <div id="player-icon">🔬</div>
-      <div id="selected-factor" style="display:none; position:absolute; bottom:38px; left:48px; width:120px; height:120px; align-items:center; justify-content:center; flex-direction:column; gap:4px;">
-        <div id="selected-factor-icon" style="font-size:44px;"></div>
-        <div id="selected-factor-name" style="font-size:11px; font-weight:900; color:#fff; text-shadow:1px 1px 4px #000; text-align:center; background:rgba(0,0,0,0.5); padding:2px 8px; border-radius:10px;"></div>
+      <div id="selected-factor" style="display:none;">
+        <div id="selected-factor-icon"></div>
+        <div id="selected-factor-name"></div>
+      </div>
+
+      <!-- 플레이어 HUD: 이미지 우측 하단 박스 -->
+      <div id="player-hud">
+        <div id="player-name-row">
+          <span id="player-label">🔬 연구자</span>
+          <span id="player-lv">Lv.1</span>
+        </div>
+        <div id="energy-badge"></div>
+        <div class="bar-row">
+          <span class="hud-bar-label">HP</span>
+          <div class="bar-track"><div class="bar-fill high" style="width:100%"></div></div>
+        </div>
+      </div>
+
+      <!-- 텍스트 박스: 이미지 하단 좌 검은 박스 -->
+      <div id="text-box">
+        <div id="battle-text">...</div>
+      </div>
+
+      <!-- 액션 영역: 이미지 하단 우 검은 박스 -->
+      <div id="action-area">
+        <div id="phase-header" style="display:none;"><span id="phase-label"></span></div>
+        <div id="factor-panel" class="btn-grid">
+          <button class="action-btn" id="fbtn0" onclick="selectFactor(0)"></button>
+          <button class="action-btn" id="fbtn1" onclick="selectFactor(1)"></button>
+          <button class="action-btn" id="fbtn2" onclick="selectFactor(2)"></button>
+          <button class="action-btn" id="fbtn3" onclick="selectFactor(3)"></button>
+        </div>
+        <div id="move-panel" class="btn-grid" style="display:none">
+          <button class="move-btn" id="mbtn0" onclick="selectMove(0)"></button>
+          <button class="move-btn" id="mbtn1" onclick="selectMove(1)"></button>
+          <button class="move-btn" id="mbtn2" onclick="selectMove(2)"></button>
+          <button class="move-btn" id="mbtn3" onclick="selectMove(3)"></button>
+        </div>
       </div>
 
       <!-- 결과 오버레이 -->
@@ -554,34 +464,7 @@
         <div id="result-explanation"></div>
         <button id="next-btn" onclick="nextRound()">다음 라운드 ▶</button>
       </div>
-    </div>
 
-    <!-- 하단: 텍스트(좌) + 버튼(우) -->
-    <div id="bottom-section">
-      <div id="text-box">
-        <div id="energy-badge"></div>
-        <div id="battle-text">...</div>
-      </div>
-      <div id="action-area">
-        <!-- 단계 헤더 -->
-        <div id="phase-header">
-          <span id="phase-label">⬇ 조절 인자를 선택하세요</span>
-        </div>
-        <!-- 1단계: 인자 선택 (파티 카드) -->
-        <div id="factor-panel" class="btn-grid">
-          <button class="action-btn" id="fbtn0" onclick="selectFactor(0)"></button>
-          <button class="action-btn" id="fbtn1" onclick="selectFactor(1)"></button>
-          <button class="action-btn" id="fbtn2" onclick="selectFactor(2)"></button>
-          <button class="action-btn" id="fbtn3" onclick="selectFactor(3)"></button>
-        </div>
-        <!-- 2단계: 기술 선택 (무브 리스트) -->
-        <div id="move-panel" class="btn-grid" style="display:none">
-          <button class="move-btn" id="mbtn0" onclick="selectMove(0)"></button>
-          <button class="move-btn" id="mbtn1" onclick="selectMove(1)"></button>
-          <button class="move-btn" id="mbtn2" onclick="selectMove(2)"></button>
-          <button class="move-btn" id="mbtn3" onclick="selectMove(3)"></button>
-        </div>
-      </div>
     </div>
   </div>
 
