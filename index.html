@@ -769,8 +769,8 @@ function loadRound() {
   spriteArea.style.transform = 'translateX(80px)';
   spriteArea.style.transition = 'none';
 
-  const introName = s.enzyme.split('\n')[0]; // 줄바꿈 있으면 첫 줄만
-  typeText(`앗! 야생의 ${introName}이(가) 등장했다!`, () => {
+  const introName = s.enzyme.split('\n')[0];
+  typeText(`앗! 야생의 ${introName}${josa(introName, '이', '가')} 등장했다!`, () => {
     // 2) 이미지 로드 후 슬라이드인
     img.onload = () => {
       spriteArea.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
@@ -914,6 +914,25 @@ function typeText(text, onDone) {
       if (onDone) onDone();
     }
   }, 30);
+}
+
+// 한국어 조사 판별 (받침 있으면 이/은/을, 없으면 가/는/를)
+function josa(word, withBatchim, withoutBatchim) {
+  const last = word[word.length - 1];
+  const code = last.charCodeAt(0);
+  // 한글 범위
+  if (code >= 0xAC00 && code <= 0xD7A3) {
+    return (code - 0xAC00) % 28 !== 0 ? withBatchim : withoutBatchim;
+  }
+  // 숫자로 끝나는 경우 (1=일 받침ㄹ, 2=이 받침없음, 3=삼 받침ㅁ 등)
+  const numMap = {'0':'영','1':'일','2':'이','3':'삼','4':'사','5':'오','6':'육','7':'칠','8':'팔','9':'구'};
+  if (numMap[last]) {
+    const code2 = numMap[last].charCodeAt(0);
+    return (code2 - 0xAC00) % 28 !== 0 ? withBatchim : withoutBatchim;
+  }
+  // 영문자로 끝나는 경우 — 발음 기준
+  const vowelEnds = ['a','e','i','o','u','A','E','I','O','U'];
+  return vowelEnds.includes(last) ? withoutBatchim : withBatchim;
 }
 
 // 배열 셔플
