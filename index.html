@@ -32,37 +32,10 @@
     height: 310px;
     position: relative;
     overflow: hidden;
-    background:
-      linear-gradient(180deg,
-        #1c2e48 0%,
-        #243850 20%,
-        #1a3a1a 20%,
-        #1e4a1e 38%,
-        #2a6030 38%,
-        #3a7838 52%,
-        #4a6820 52%,
-        #3a5018 100%
-      );
+    background: url('images/battle-bg.png') center center / cover no-repeat;
   }
 
-  /* 숲 실루엣 */
-  #battle-field::before {
-    content: '';
-    position: absolute;
-    top: 18%;
-    left: 0; right: 0;
-    height: 22%;
-    background:
-      radial-gradient(ellipse 60px 55px at 8% 100%, #0d250d 99%, transparent 100%),
-      radial-gradient(ellipse 50px 60px at 15% 100%, #0a1f0a 99%, transparent 100%),
-      radial-gradient(ellipse 70px 50px at 23% 100%, #0d280d 99%, transparent 100%),
-      radial-gradient(ellipse 45px 55px at 30% 100%, #0a200a 99%, transparent 100%),
-      radial-gradient(ellipse 55px 45px at 38% 100%, #0c250c 99%, transparent 100%),
-      radial-gradient(ellipse 65px 60px at 80% 100%, #0a1f0a 99%, transparent 100%),
-      radial-gradient(ellipse 50px 55px at 88% 100%, #0d250d 99%, transparent 100%),
-      radial-gradient(ellipse 60px 50px at 96% 100%, #0a220a 99%, transparent 100%);
-    pointer-events: none;
-  }
+  #battle-field::before { content: none; }
 
   /* 플랫폼 타원 그림자 */
   .platform {
@@ -1018,27 +991,20 @@ function selectFactor(btnIdx) {
   document.getElementById('selected-factor-name').textContent = name;
   document.getElementById('selected-factor').style.display = 'flex';
 
-  selectedFactor = { name, icon };
+  selectedFactor = { name, icon, isCorrect };
 
-  if (!isCorrect) {
+  typeText(`${name}${josa(name, '이', '가')} 등장했다!\n어떤 기술을 사용하겠습니까?`, () => {
     const s = scenarios[currentRound];
-    typeText(`${name}${josa(name, '을', '를')} 선택했다!\n하지만... 효과가 없다!`);
-    setTimeout(() => { shakeSprite('selected-factor'); }, 600);
-    showResult('효과는 미미했다!', 'miss', s.wrongEffect, false);
-  } else {
-    typeText(`${name}${josa(name, '이', '가')} 등장했다!\n어떤 기술을 사용하겠습니까?`, () => {
-      const s = scenarios[currentRound];
-      renderMoves(s);
-      document.getElementById('factor-panel').style.display = 'none';
-      document.getElementById('move-panel').style.display = '';
-      document.getElementById('phase-label').textContent = '⚔ 기술을 선택하세요';
-    });
-  }
+    renderMoves(s);
+    document.getElementById('factor-panel').style.display = 'none';
+    document.getElementById('move-panel').style.display = '';
+    document.getElementById('phase-label').textContent = '⚔ 기술을 선택하세요';
+  });
 }
 
 function selectMove(btnIdx) {
   const btn = document.getElementById(`mbtn${btnIdx}`);
-  const isCorrect = btn.dataset.correct === '1';
+  const moveCorrect = btn.dataset.correct === '1';
   const effect = btn.dataset.effect;
   const resultType = btn.dataset.resultType;
   const resultText = btn.dataset.resultText;
@@ -1049,10 +1015,12 @@ function selectMove(btnIdx) {
   setButtonsVisible(false);
 
   const factorName = selectedFactor.name;
+  const factorCorrect = selectedFactor.isCorrect;
   typeText(`${factorName}${josa(factorName, '이', '가')} ${moveName}${josa(moveName, '을', '를')} 사용했다!`);
 
+  const success = factorCorrect && moveCorrect;
   setTimeout(() => {
-    if (isCorrect) {
+    if (success) {
       score++;
       shakeSprite('enemy-sprite-area');
       setActivity(s.goalActivity);
@@ -1061,7 +1029,10 @@ function selectMove(btnIdx) {
     }
   }, 600);
 
-  showResult(resultText, resultType, effect, isCorrect);
+  const finalEffect = factorCorrect ? effect : s.wrongEffect + '\n\n' + effect;
+  const finalType = factorCorrect ? resultType : 'miss';
+  const finalText = factorCorrect ? resultText : '효과는 미미했다!';
+  showResult(finalText, finalType, finalEffect, success);
 }
 
 function shakeSprite(id) {
