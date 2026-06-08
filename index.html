@@ -81,7 +81,7 @@
     bottom: 36px; left: 44px;
   }
 
-  /* ── 플레이어 HUD: 좌상단 ── */
+  /* ── 플레이어 HUD: 좌상단 (겹곽) ── */
   #player-hud {
     position: absolute;
     top: 12px; left: 0;
@@ -91,7 +91,8 @@
     border-radius: 0 10px 10px 0;
     padding: 7px 14px 7px 12px;
     min-width: 190px;
-    box-shadow: 3px 3px 0 #222;
+    /* 겹곽: 안쪽 테두리 + 바깥 그림자 */
+    box-shadow: 3px 3px 0 #222, inset 0 0 0 2px #c8c0a0;
     z-index: 2;
   }
   #player-name-row {
@@ -118,7 +119,7 @@
   .bar-fill.mid  { background: #e8c010; }
   .bar-fill.low  { background: #e04040; }
 
-  /* ── 적(효소) HUD: 우상단 ── */
+  /* ── 적(효소) HUD: 우상단 (겹곽) ── */
   #enemy-hud {
     position: absolute;
     top: 12px; right: 0;
@@ -128,9 +129,15 @@
     border-radius: 10px 0 0 10px;
     padding: 7px 12px 7px 14px;
     min-width: 200px;
-    box-shadow: -3px 3px 0 #222;
+    box-shadow: -3px 3px 0 #222, inset 0 0 0 2px #c8c0a0;
     z-index: 2;
     text-align: right;
+  }
+  #enemy-trainer {
+    font-size: 9px;
+    color: #888;
+    margin-bottom: 2px;
+    letter-spacing: 0.5px;
   }
   #enemy-name-row {
     display: flex; justify-content: space-between; align-items: baseline;
@@ -423,7 +430,7 @@
       <!-- 플레이어 HUD: 좌상단 -->
       <div id="player-hud">
         <div id="player-name-row">
-          <span id="player-label">🧪 세포 연구자</span>
+          <span id="player-label">🔬 해당 과정 연구자</span>
           <span id="player-lv">Lv.1</span>
         </div>
         <div class="hud-bar-label">HP</div>
@@ -434,6 +441,7 @@
 
       <!-- 적(효소) HUD: 우상단 -->
       <div id="enemy-hud">
+        <div id="enemy-trainer">⚗️ 생명과학</div>
         <div id="enemy-name-row">
           <span id="enemy-name">PFK-1</span>
           <span id="enemy-lv">Lv.★</span>
