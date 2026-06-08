@@ -188,22 +188,21 @@
     filter: brightness(0.7) drop-shadow(0 6px 12px rgba(0,0,0,0.7));
   }
 
-  /* ── 하단 전체 영역: 텍스트 + 버튼 가로 배치 ── */
+  /* ── 하단 전체 영역: 텍스트 위 + 파티 아래 ── */
   #bottom-section {
     display: flex;
+    flex-direction: column;
     border-top: 3px solid #222;
-    height: 110px;
   }
 
-  /* 텍스트 박스: 좌측 */
+  /* 텍스트 박스: 상단 */
   #text-box {
-    flex: 1;
     background: #e8e0cc;
     padding: 10px 14px;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
-    border-right: 2px solid #555;
+    min-height: 60px;
     overflow: hidden;
   }
   #energy-badge {
@@ -227,42 +226,110 @@
     vertical-align: middle;
   }
   @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    20%     { transform: translateX(-8px); }
+    40%     { transform: translateX(8px); }
+    60%     { transform: translateX(-6px); }
+    80%     { transform: translateX(6px); }
+  }
 
-  /* 액션 버튼 영역: 우측 2x2 */
+  /* ── 파티 선택 패널 (전체 너비) ── */
   #action-area {
-    width: 220px;
-    background: #c8c0a8;
-    padding: 8px;
+    width: 100%;
+    background: #1a1a2e;
+    padding: 8px 10px;
     display: grid;
     grid-template-columns: 1fr 1fr;
     grid-template-rows: 1fr 1fr;
     gap: 6px;
-    flex-shrink: 0;
+    border-top: 3px solid #444;
+    box-sizing: border-box;
   }
+
+  /* 파티원 카드 */
   .action-btn {
-    background: #f0ece0;
-    border: 2px solid #666;
-    border-radius: 5px;
-    padding: 4px 6px;
-    font-size: 11px;
-    font-weight: bold;
-    color: #222;
+    background: #2a2a42;
+    border: 2px solid #555;
+    border-radius: 8px;
+    padding: 6px 8px;
     cursor: pointer;
-    transition: all 0.12s;
-    text-align: center;
-    line-height: 1.3;
-    box-shadow: 2px 2px 0 #666;
-    white-space: pre-line;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-align: left;
+    box-shadow: inset 0 0 0 1px #3a3a5a;
+    position: relative;
+    overflow: hidden;
   }
   .action-btn:hover:not(:disabled) {
-    background: #fffae8;
-    border-color: #333;
-    transform: translateY(-1px);
-    box-shadow: 3px 3px 0 #333;
+    background: #3a3a5a;
+    border-color: #aaa;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5), inset 0 0 0 1px #6a6a9a;
   }
-  .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-  .action-btn.correct  { background: #90ee90; border-color: #1a7a1a; }
-  .action-btn.wrong    { background: #ffaaaa; border-color: #aa1a1a; }
+  .action-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  /* 파티원 아이콘 */
+  .party-icon {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+    border: 2px solid rgba(255,255,255,0.2);
+  }
+
+  /* 파티원 정보 */
+  .party-info { flex: 1; min-width: 0; }
+  .party-name {
+    font-size: 12px;
+    font-weight: 900;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+    margin-bottom: 3px;
+  }
+  .party-sub {
+    font-size: 9px;
+    color: #aaa;
+    line-height: 1.2;
+  }
+  .party-hp-track {
+    width: 100%; height: 4px;
+    background: #444;
+    border-radius: 2px;
+    margin-top: 4px;
+    overflow: hidden;
+  }
+  .party-hp-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.3s;
+  }
+
+  /* 카드 색상 테마 */
+  .theme-red   .party-icon { background: #5a1a1a; }
+  .theme-red   .party-hp-fill { background: #ff6060; width: 85%; }
+  .theme-blue  .party-icon { background: #1a2a5a; }
+  .theme-blue  .party-hp-fill { background: #6090ff; width: 90%; }
+  .theme-green .party-icon { background: #1a4a2a; }
+  .theme-green .party-hp-fill { background: #50cc70; width: 75%; }
+  .theme-gold  .party-icon { background: #4a3a0a; }
+  .theme-gold  .party-hp-fill { background: #ffcc30; width: 80%; }
+
+  /* 선택 시 flash 애니메이션 */
+  @keyframes cardSelect {
+    0%   { transform: scale(1); }
+    30%  { transform: scale(1.08); background: #5a5a8a; }
+    100% { transform: scale(1); opacity: 0.5; }
+  }
+  .action-btn.selected { animation: cardSelect 0.4s ease forwards; }
+  .action-btn.correct  { border-color: #50cc70; background: #1a3a2a; }
+  .action-btn.wrong    { border-color: #ff6060; background: #3a1a1a; }
 
   /* ── 결과 오버레이 ── */
   #result-overlay {
@@ -465,8 +532,12 @@
         </div>
       </div>
 
-      <!-- 플레이어 스프라이트: 좌측 하단 (가까이, 크게, 뒷모습) -->
+      <!-- 플레이어 스프라이트 / 선택된 조절인자 -->
       <div id="player-icon">🔬</div>
+      <div id="selected-factor" style="display:none; position:absolute; bottom:38px; left:48px; width:120px; height:120px; align-items:center; justify-content:center; flex-direction:column; gap:4px;">
+        <div id="selected-factor-icon" style="font-size:44px;"></div>
+        <div id="selected-factor-name" style="font-size:11px; font-weight:900; color:#fff; text-shadow:1px 1px 4px #000; text-align:center; background:rgba(0,0,0,0.5); padding:2px 8px; border-radius:10px;"></div>
+      </div>
 
       <!-- 결과 오버레이 -->
       <div id="result-overlay">
@@ -786,21 +857,52 @@ function loadRound() {
     };
     img.src = s.enzymeImg;
 
-    // 3) 1.5초 후 상황 텍스트 + 버튼 표시
+    // 3) 1.5초 후 상황 텍스트 + 파티 카드 표시
     setTimeout(() => {
-      // 버튼 초기화
-      const shuffled = shuffleArray([...s.options]);
-      for (let i = 0; i < 4; i++) {
-        const btn = document.getElementById(`btn${i}`);
-        btn.textContent = shuffled[i].text;
-        btn.dataset.idx = s.options.indexOf(shuffled[i]);
-        btn.className = 'action-btn';
-        btn.disabled = false;
-      }
+      renderPartyCards(s);
       setButtonsVisible(true);
       typeText(s.situation);
     }, 1500);
   });
+}
+
+// 파티 카드 렌더링
+const themes = ['theme-red', 'theme-blue', 'theme-green', 'theme-gold'];
+function renderPartyCards(s) {
+  const shuffled = shuffleArray([...s.options]);
+  for (let i = 0; i < 4; i++) {
+    const opt = shuffled[i];
+    const btn = document.getElementById(`btn${i}`);
+    btn.dataset.idx = s.options.indexOf(opt);
+    btn.className = `action-btn ${themes[i]}`;
+    btn.disabled = false;
+
+    const name = opt.text.replace(/\n/g, ' ');
+    const icon = getFactorIcon(opt.text);
+    btn.innerHTML = `
+      <div class="party-icon">${icon}</div>
+      <div class="party-info">
+        <div class="party-name">${name}</div>
+        <div class="party-hp-track"><div class="party-hp-fill"></div></div>
+      </div>`;
+  }
+}
+
+// 조절 인자 이모지 매핑
+function getFactorIcon(text) {
+  if (text.includes('ATP') && !text.includes('AMP') && !text.includes('ADP')) return '⚡';
+  if (text.includes('AMP') || text.includes('ADP')) return '🔋';
+  if (text.includes('시트르산')) return '🍋';
+  if (text.includes('F-2,6-BP')) return '🍽️';
+  if (text.includes('F-1,6-BP')) return '🔄';
+  if (text.includes('G-6-P')) return '🔴';
+  if (text.includes('아세틸')) return '🧈';
+  if (text.includes('알라닌')) return '🔤';
+  if (text.includes('H⁺')) return '⚗️';
+  if (text.includes('포도당') || text.includes('GKRP')) return '🍬';
+  if (text.includes('인슐린') || text.includes('인산화')) return '💉';
+  if (text.includes('F-6-P')) return '🔵';
+  return '🧪';
 }
 
 function setButtonsVisible(visible) {
@@ -823,29 +925,49 @@ function selectAction(btnIdx) {
   const optionIdx = parseInt(btn.dataset.idx);
   const chosen = s.options[optionIdx];
 
-  // 버튼 비활성화
-  for (let i = 0; i < 4; i++) {
-    document.getElementById(`btn${i}`).disabled = true;
-  }
+  // 선택 카드 애니메이션
+  btn.classList.add('selected');
 
-  // 정답 표시
-  for (let i = 0; i < 4; i++) {
-    const b = document.getElementById(`btn${i}`);
-    const idx = parseInt(b.dataset.idx);
-    if (s.options[idx].correct) b.classList.add('correct');
-  }
-  if (!chosen.correct) btn.classList.add('wrong');
+  // 모든 버튼 비활성화
+  for (let i = 0; i < 4; i++) document.getElementById(`btn${i}`).disabled = true;
 
-  // 점수
-  if (chosen.correct) score++;
+  // 플레이어 자리에 선택한 인자 표시
+  const icon = getFactorIcon(chosen.text);
+  const name = chosen.text.replace(/\n/g, ' ');
+  document.getElementById('player-icon').style.display = 'none';
+  const sf = document.getElementById('selected-factor');
+  document.getElementById('selected-factor-icon').textContent = icon;
+  document.getElementById('selected-factor-name').textContent = name;
+  sf.style.display = 'flex';
 
-  // 활성도 변화
+  // 배틀 텍스트: ~을(를) 사용했다!
+  typeText(`${name}${josa(name.split(' ')[0], '을', '를')} 사용했다!`);
+
+  // 0.6초 후 정답/오답 판정 + 효소 흔들기
   setTimeout(() => {
+    // 카드 정답 표시
+    for (let i = 0; i < 4; i++) {
+      const b = document.getElementById(`btn${i}`);
+      const idx = parseInt(b.dataset.idx);
+      if (s.options[idx].correct) b.classList.add('correct');
+    }
+    if (!chosen.correct) btn.classList.add('wrong');
+
+    if (chosen.correct) {
+      score++;
+      shakeSprite('enemy-sprite-area');
+    } else {
+      shakeSprite('player-icon');
+    }
     setActivity(s.goalActivity);
-  }, 300);
+  }, 600);
 
-  // 결과 오버레이
+  // 1.4초 후 결과 오버레이
   setTimeout(() => {
+    // 플레이어 복원
+    document.getElementById('player-icon').style.display = 'flex';
+    sf.style.display = 'none';
+
     const overlay = document.getElementById('result-overlay');
     const label = document.getElementById('result-label');
     const expDiv = document.getElementById('result-explanation');
@@ -855,13 +977,19 @@ function selectAction(btnIdx) {
     label.classList.add(chosen.resultType);
     expDiv.textContent = chosen.effect + '\n\n📚 ' + s.explanation;
 
-    // 마지막 라운드면 버튼 텍스트 변경
     const nextBtn = document.getElementById('next-btn');
     nextBtn.textContent = currentRound === scenarios.length - 1 ? '결과 보기 🏆' : '다음 라운드 ▶';
 
     overlay.classList.add('show');
     document.getElementById('score-info').textContent = `점수: ${score}`;
-  }, 600);
+  }, 1400);
+}
+
+function shakeSprite(id) {
+  const el = document.getElementById(id);
+  el.style.animation = 'none';
+  el.offsetHeight; // reflow
+  el.style.animation = 'shake 0.4s ease';
 }
 
 function nextRound() {
