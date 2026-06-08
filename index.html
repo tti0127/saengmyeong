@@ -470,7 +470,7 @@
 
       <!-- 결과 오버레이 -->
       <div id="result-overlay">
-        <div id="result-label">효과적!</div>
+        <div id="result-label">효과는 굉장했다!</div>
         <div id="result-explanation"></div>
         <button id="next-btn" onclick="nextRound()">다음 라운드 ▶</button>
       </div>
@@ -519,16 +519,16 @@ const scenarios = [
     options: [
       { text: "G-6-P\n알로스테릭 억제", correct: true,
         effect: "G-6-P가 알로스테릭 조절 부위에 결합하여 효소 구조가 변형됩니다!\nR→T 전환 → 활성이 크게 감소합니다.",
-        resultType: "super", resultText: "효과적!" },
+        resultType: "super", resultText: "효과는 굉장했다!" },
       { text: "ATP 결합", correct: false,
         effect: "ATP는 PFK-1에 작용하는 억제제입니다.\nHexokinase I에는 직접적인 억제 효과가 없습니다.",
-        resultType: "miss", resultText: "효과가 없었다!" },
+        resultType: "miss", resultText: "효과는 미미했다!" },
       { text: "포도당 추가 공급", correct: false,
         effect: "포도당 공급 증가는 반응을 오히려 촉진합니다. 역효과!",
         resultType: "fail", resultText: "역효과!" },
       { text: "시트르산 결합", correct: false,
         effect: "시트르산은 PFK-1의 전용 억제제입니다.\nHexokinase에는 효과가 없습니다.",
-        resultType: "miss", resultText: "효과가 없었다!" }
+        resultType: "miss", resultText: "효과는 미미했다!" }
     ],
     explanation: "Hexokinase I·II·III은 Km이 매우 낮아 공복에도 최대속도로 작동합니다.\nG-6-P가 축적되면 알로스테릭 억제를 통해 자동으로 속도가 감소합니다 (음성 피드백)."
   },
@@ -545,16 +545,16 @@ const scenarios = [
     options: [
       { text: "포도당 농도 증가\n→ GKRP 분리", correct: true,
         effect: "혈당 상승으로 GKRP(조절 단백질)가 핵에서 Glucokinase를 방출!\n세포질로 나와 포도당과 직접 결합하여 활성화됩니다.",
-        resultType: "super", resultText: "효과적!" },
+        resultType: "super", resultText: "효과는 굉장했다!" },
       { text: "G-6-P 결합", correct: false,
         effect: "Glucokinase는 G-6-P에 의해 억제되지 않습니다.\n이것이 Hexokinase I과의 핵심 차이점입니다!",
-        resultType: "miss", resultText: "효과가 없었다!" },
+        resultType: "miss", resultText: "효과는 미미했다!" },
       { text: "GKRP 핵 내 고정", correct: false,
         effect: "GKRP가 Glucokinase를 핵 안에 가두면 오히려 비활성화됩니다!",
         resultType: "fail", resultText: "역효과!" },
       { text: "ATP 조절부위 결합", correct: false,
         effect: "Glucokinase는 단량체로 별도의 알로스테릭 조절 부위가 없습니다.\n시간적 협동성으로 포도당 농도에 직접 반응합니다.",
-        resultType: "miss", resultText: "효과가 없었다!" }
+        resultType: "miss", resultText: "효과는 미미했다!" }
     ],
     explanation: "Glucokinase(HK IV)는 Km이 높아 평상시 거의 작동하지 않습니다.\n식후 혈당↑ → GKRP에서 분리 → 세포질 이동 → 포도당 농도에 의해 직접 활성화됩니다.\nG-6-P에 의해 억제되지 않는 것이 핵심 차이점!"
   },
@@ -571,16 +571,16 @@ const scenarios = [
     options: [
       { text: "ATP\n알로스테릭 조절부위 결합", correct: true,
         effect: "ATP가 알로스테릭 조절 부위에 결합 → R상태→T상태 전환!\nF-6-P에 대한 친화력이 감소하여 활성이 억제됩니다.",
-        resultType: "super", resultText: "효과적!" },
+        resultType: "super", resultText: "효과는 굉장했다!" },
       { text: "AMP 결합", correct: false,
         effect: "AMP는 ATP와 경쟁하여 T→R 전환을 유도합니다.\nATP가 충분한 상황에서는 AMP가 부족합니다.",
-        resultType: "miss", resultText: "효과가 없었다!" },
+        resultType: "miss", resultText: "효과는 미미했다!" },
       { text: "F-2,6-BP 결합", correct: false,
         effect: "F-2,6-BP는 PFK-1의 촉진 인자입니다!\n식후 인슐린 신호로 생성되어 해당 과정을 가속합니다.",
         resultType: "fail", resultText: "역효과!" },
       { text: "F-6-P 공급 차단", correct: false,
         effect: "기질 공급 차단은 이 게임의 조절 메커니즘이 아닙니다.\n알로스테릭 조절이 실제 세포 내 조절 방식입니다.",
-        resultType: "miss", resultText: "효과가 없었다!" }
+        resultType: "miss", resultText: "효과는 미미했다!" }
     ],
     explanation: "ATP는 PFK-1에서 기질(활성 부위)이자 억제제(조절 부위) 역할을 동시에 합니다.\nATP 고농도 → 조절 부위에 결합 → T상태 전환 → F-6-P 친화력 감소 → 활성 억제"
   },
@@ -597,16 +597,16 @@ const scenarios = [
     options: [
       { text: "시트르산\n전용 결합부위 결합", correct: true,
         effect: "TCA 회로의 첫 번째 산물 시트르산이 PFK-1의 전용 결합 부위에 결합!\nT상태로 전환 → ATP의 조절부위 결합을 촉진 → 강력 억제!",
-        resultType: "super", resultText: "효과적!" },
+        resultType: "super", resultText: "효과는 굉장했다!" },
       { text: "ADP 결합", correct: false,
         effect: "ADP는 ATP 고갈 신호입니다. TCA가 활발한 상황에서는 ADP가 부족합니다.\n오히려 PFK-1 촉진 인자입니다.",
         resultType: "fail", resultText: "역효과!" },
       { text: "H⁺ 방출", correct: false,
         effect: "H⁺는 무산소 호흡(젖산 발효) 시 축적되는 억제 신호입니다.\nTCA 회로가 정상 작동 중인 지금은 관련이 없습니다.",
-        resultType: "miss", resultText: "효과가 없었다!" },
+        resultType: "miss", resultText: "효과는 미미했다!" },
       { text: "F-1,6-BP 공급", correct: false,
         effect: "F-1,6-BP는 Pyruvate Kinase의 촉진 인자입니다.\nPFK-1에 대한 억제 효과는 없습니다.",
-        resultType: "miss", resultText: "효과가 없었다!" }
+        resultType: "miss", resultText: "효과는 미미했다!" }
     ],
     explanation: "시트르산은 TCA 회로의 첫 산물로 '에너지 충분' 신호입니다.\nPFK-1의 별도 전용 결합 부위에 결합하여 T상태를 유도하고, ATP의 조절부위 결합을 더욱 촉진합니다."
   },
@@ -623,16 +623,16 @@ const scenarios = [
     options: [
       { text: "AMP/ADP\n알로스테릭 부위 경쟁 결합", correct: true,
         effect: "AMP·ADP가 알로스테릭 조절 부위에서 ATP와 경쟁하여 결합!\nATP의 억제 효과를 차단 → T→R 전환 → PFK-1 활성화!",
-        resultType: "super", resultText: "효과적!" },
+        resultType: "super", resultText: "효과는 굉장했다!" },
       { text: "시트르산 결합", correct: false,
         effect: "시트르산은 TCA가 활발할 때의 억제 신호입니다.\n에너지 위기 상황에서는 시트르산이 부족합니다.",
-        resultType: "miss", resultText: "효과가 없었다!" },
+        resultType: "miss", resultText: "효과는 미미했다!" },
       { text: "ATP 추가 공급", correct: false,
         effect: "ATP가 풍부하면 PFK-1이 오히려 억제됩니다.\n에너지 위기 상황과 모순입니다.",
         resultType: "fail", resultText: "역효과!" },
       { text: "H⁺ 방출 차단", correct: false,
         effect: "H⁺ 조절은 무산소 호흡 상황에서의 메커니즘입니다.\n이 상황의 주요 신호는 AMP/ADP 비율입니다.",
-        resultType: "miss", resultText: "효과가 없었다!" }
+        resultType: "miss", resultText: "효과는 미미했다!" }
     ],
     explanation: "ATP 고갈 → AMP·ADP 증가 → 알로스테릭 조절 부위에서 ATP와 경쟁 결합\n→ ATP의 억제 효과 차단 → PFK-1 R상태 유지 → 해당 과정 가속!"
   },
@@ -649,7 +649,7 @@ const scenarios = [
     options: [
       { text: "F-2,6-BP\nT→R 전환 촉진", correct: true,
         effect: "인슐린-RTK → PFK-2 활성화 → F-2,6-BP 생성!\nF-2,6-BP가 T상태 PFK-1을 R상태로 전환 → F-6-P 친화력 대폭 증가!",
-        resultType: "super", resultText: "효과적!" },
+        resultType: "super", resultText: "효과는 굉장했다!" },
       { text: "ATP 결합", correct: false,
         effect: "ATP는 PFK-1의 억제제입니다. 식후 해당 과정 촉진에 역행합니다.",
         resultType: "fail", resultText: "역효과!" },
@@ -658,7 +658,7 @@ const scenarios = [
         resultType: "fail", resultText: "역효과!" },
       { text: "알라닌 결합", correct: false,
         effect: "알라닌은 Pyruvate Kinase의 억제제입니다.\nPFK-1에는 효과가 없습니다.",
-        resultType: "miss", resultText: "효과가 없었다!" }
+        resultType: "miss", resultText: "효과는 미미했다!" }
     ],
     explanation: "인슐린-RTK → PFK-2 활성화 → F-2,6-BP 생성 → PFK-1 T→R 전환\nF-2,6-BP는 식후 가장 강력한 PFK-1 촉진 신호입니다!"
   },
@@ -675,13 +675,13 @@ const scenarios = [
     options: [
       { text: "아세틸-CoA\n조절 부위 결합", correct: true,
         effect: "β-산화 → 아세틸-CoA 생성 → OAA와 결합 → 시트르산 → 세포질로 이동\n→ ATP-시트르산 분해효소로 아세틸-CoA 재생 → PK 조절부위 결합 → 억제!",
-        resultType: "super", resultText: "효과적!" },
+        resultType: "super", resultText: "효과는 굉장했다!" },
       { text: "F-1,6-BP 공급", correct: false,
         effect: "F-1,6-BP는 PK의 강력한 촉진 인자입니다 (피드포워드 조절).\n아세틸-CoA가 충분한 상황에서는 역효과입니다.",
         resultType: "fail", resultText: "역효과!" },
       { text: "AMP 결합", correct: false,
         effect: "AMP는 에너지 부족 신호로 PK를 촉진할 수 있습니다.\n지방산 β-산화로 에너지가 충분한 현재 상황과 맞지 않습니다.",
-        resultType: "miss", resultText: "효과가 없었다!" },
+        resultType: "miss", resultText: "효과는 미미했다!" },
       { text: "인슐린 신호", correct: false,
         effect: "인슐린-PKB(Akt)는 PP1을 활성화하여 PK를 탈인산화 → 촉진합니다.\n억제가 필요한 지금 상황에는 맞지 않습니다.",
         resultType: "fail", resultText: "역효과!" }
@@ -701,7 +701,7 @@ const scenarios = [
     options: [
       { text: "F-1,6-BP\n조절 부위 결합", correct: true,
         effect: "F-1,6-BP가 PK 조절 부위에 결합 → T→R 전환 → 활성화!\n10단계에서 3단계 산물이 직접 활성화 → 피드포워드 조절!",
-        resultType: "super", resultText: "효과적!" },
+        resultType: "super", resultText: "효과는 굉장했다!" },
       { text: "ATP 결합", correct: false,
         effect: "ATP는 PK의 억제 인자입니다.\nF-1,6-BP 병목 해결에는 역효과입니다.",
         resultType: "fail", resultText: "역효과!" },
