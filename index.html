@@ -321,7 +321,7 @@
   .theme-gold  .party-icon { background: #4a3a0a; }
   .theme-gold  .party-hp-fill { background: #ffcc30; width: 80%; }
 
-  /* 선택 시 flash 애니메이션 */
+  /* 선택 애니메이션 */
   @keyframes cardSelect {
     0%   { transform: scale(1); }
     30%  { transform: scale(1.08); background: #5a5a8a; }
@@ -330,6 +330,42 @@
   .action-btn.selected { animation: cardSelect 0.4s ease forwards; }
   .action-btn.correct  { border-color: #50cc70; background: #1a3a2a; }
   .action-btn.wrong    { border-color: #ff6060; background: #3a1a1a; }
+
+  /* 단계 헤더 */
+  #phase-header {
+    grid-column: 1 / -1;
+    padding: 2px 4px;
+    font-size: 10px;
+    color: #aaa;
+    letter-spacing: 0.5px;
+  }
+  .btn-grid {
+    display: contents; /* action-area의 grid에 합류 */
+  }
+
+  /* 기술 버튼 (무브 리스트 스타일) */
+  .move-btn {
+    background: #22223a;
+    border: 2px solid #555;
+    border-radius: 6px;
+    padding: 8px 12px;
+    color: #fff;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.12s;
+    white-space: pre-line;
+    line-height: 1.4;
+  }
+  .move-btn:hover:not(:disabled) {
+    background: #3a3a5a;
+    border-color: #aaa;
+    transform: translateY(-1px);
+  }
+  .move-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .move-btn.correct  { border-color: #50cc70; background: #1a3a2a; }
+  .move-btn.wrong    { border-color: #ff6060; background: #3a1a1a; }
 
   /* ── 결과 오버레이 ── */
   #result-overlay {
@@ -554,10 +590,24 @@
         <div id="battle-text">...</div>
       </div>
       <div id="action-area">
-        <button class="action-btn" id="btn0" onclick="selectAction(0)"></button>
-        <button class="action-btn" id="btn1" onclick="selectAction(1)"></button>
-        <button class="action-btn" id="btn2" onclick="selectAction(2)"></button>
-        <button class="action-btn" id="btn3" onclick="selectAction(3)"></button>
+        <!-- 단계 헤더 -->
+        <div id="phase-header">
+          <span id="phase-label">⬇ 조절 인자를 선택하세요</span>
+        </div>
+        <!-- 1단계: 인자 선택 (파티 카드) -->
+        <div id="factor-panel" class="btn-grid">
+          <button class="action-btn" id="fbtn0" onclick="selectFactor(0)"></button>
+          <button class="action-btn" id="fbtn1" onclick="selectFactor(1)"></button>
+          <button class="action-btn" id="fbtn2" onclick="selectFactor(2)"></button>
+          <button class="action-btn" id="fbtn3" onclick="selectFactor(3)"></button>
+        </div>
+        <!-- 2단계: 기술 선택 (무브 리스트) -->
+        <div id="move-panel" class="btn-grid" style="display:none">
+          <button class="move-btn" id="mbtn0" onclick="selectMove(0)"></button>
+          <button class="move-btn" id="mbtn1" onclick="selectMove(1)"></button>
+          <button class="move-btn" id="mbtn2" onclick="selectMove(2)"></button>
+          <button class="move-btn" id="mbtn3" onclick="selectMove(3)"></button>
+        </div>
       </div>
     </div>
   </div>
@@ -573,226 +623,245 @@
 </div>
 
 <script>
-// ──────────────────────────────────────────────
-//  시나리오 데이터
-// ──────────────────────────────────────────────
+// ─────────────────────────────────────────────────────
+//  시나리오 데이터  (factors + moves 2단계 구조)
+//  factors: 1단계 - 어떤 인자를 선택할지 (4개 파티 카드)
+//  moves:   2단계 - 선택한 인자로 어떤 기술을 쓸지 (4개 무브)
+//  wrongFactorEffect: 틀린 인자 선택 시 설명
+// ─────────────────────────────────────────────────────
 const scenarios = [
   {
-    round: 1,
-    enzyme: "Hexokinase I",
-    enzymeSub: "1단계 조절 효소 (뇌·근육·적혈구)",
-    enzymeImg: "images/hexokinase.jpg",
-    activityStart: 85,
-    goalActivity: 20,
+    round: 1, enzyme: "Hexokinase I", enzymeSub: "1단계 조절 효소 (뇌·근육·적혈구)",
+    enzymeImg: "images/hexokinase.jpg", activityStart: 85, goalActivity: 20,
     energyBadge: "⚠️ G-6-P 과잉 축적",
-    situation: "뇌 세포에서 포도당 분해가 과도하게 일어나 G-6-P가 과잉 축적되고 있습니다!\nHexokinase I의 활성을 억제해야 합니다.",
-    goal: "inhibit",
-    options: [
-      { text: "G-6-P\n알로스테릭 억제", correct: true,
-        effect: "G-6-P가 알로스테릭 조절 부위에 결합하여 효소 구조가 변형됩니다!\nR→T 전환 → 활성이 크게 감소합니다.",
-        resultType: "super", resultText: "효과는 굉장했다!" },
-      { text: "ATP 결합", correct: false,
-        effect: "ATP는 PFK-1에 작용하는 억제제입니다.\nHexokinase I에는 직접적인 억제 효과가 없습니다.",
-        resultType: "miss", resultText: "효과는 미미했다!" },
-      { text: "포도당 추가 공급", correct: false,
-        effect: "포도당 공급 증가는 반응을 오히려 촉진합니다. 역효과!",
-        resultType: "fail", resultText: "역효과!" },
-      { text: "시트르산 결합", correct: false,
-        effect: "시트르산은 PFK-1의 전용 억제제입니다.\nHexokinase에는 효과가 없습니다.",
-        resultType: "miss", resultText: "효과는 미미했다!" }
+    situation: "뇌 세포에서 G-6-P가 과잉 축적되고 있습니다!\n어떤 조절 인자를 선택하겠습니까?",
+    factors: [
+      { name:"G-6-P",   icon:"🔴", sub:"포도당-6-인산", correct:true  },
+      { name:"ATP",     icon:"⚡", sub:"아데노신 삼인산", correct:false },
+      { name:"포도당",  icon:"🍬", sub:"혈당 공급 증가", correct:false },
+      { name:"시트르산",icon:"🍋", sub:"TCA 회로 산물",  correct:false }
     ],
-    explanation: "Hexokinase I·II·III은 Km이 매우 낮아 공복에도 최대속도로 작동합니다.\nG-6-P가 축적되면 알로스테릭 억제를 통해 자동으로 속도가 감소합니다 (음성 피드백)."
+    wrongEffect: "이 인자는 Hexokinase I에 직접 작용하지 않습니다.\nHexokinase I은 오직 G-6-P에 의해서만 알로스테릭 억제를 받습니다.",
+    moves: [
+      { text:"알로스테릭 조절부위 결합", correct:true,
+        effect:"G-6-P가 알로스테릭 조절 부위에 결합!\n효소 구조 변형 → R→T 전환 → 활성 크게 감소!\n음성 피드백 조절 완성!",
+        resultType:"super", resultText:"효과는 굉장했다!" },
+      { text:"활성부위 직접 차단", correct:false,
+        effect:"G-6-P는 활성부위를 직접 차단하지 않습니다.\n알로스테릭 부위를 통한 간접 억제입니다.",
+        resultType:"miss", resultText:"효과는 미미했다!" },
+      { text:"기질(포도당) 공급 차단", correct:false,
+        effect:"기질 공급 차단은 G-6-P의 기능이 아닙니다.\n직접 결합을 통한 구조 변형이 핵심입니다.",
+        resultType:"miss", resultText:"효과는 미미했다!" },
+      { text:"효소 분해 촉진", correct:false,
+        effect:"G-6-P는 효소 분해를 촉진하지 않습니다.\n이것은 알로스테릭 조절 인자입니다.",
+        resultType:"miss", resultText:"효과는 미미했다!" }
+    ],
+    explanation:"Hexokinase I~III: G-6-P 축적 → 알로스테릭 억제 → 음성 피드백 조절"
   },
   {
-    round: 2,
-    enzyme: "Glucokinase\n(Hexokinase IV)",
-    enzymeSub: "1단계 조절 효소 (간·췌장 β세포)",
-    enzymeImg: "images/hexokinase.jpg",
-    activityStart: 15,
-    goalActivity: 90,
+    round: 2, enzyme: "Glucokinase", enzymeSub: "1단계 조절 효소 (간·췌장 β세포)",
+    enzymeImg: "images/hexokinase.jpg", activityStart: 15, goalActivity: 90,
     energyBadge: "🍚 식후 고혈당 (15mM)",
-    situation: "식후 혈당이 15mM까지 상승했습니다!\n간세포의 Glucokinase를 활성화시켜 포도당을 처리해야 합니다.",
-    goal: "activate",
-    options: [
-      { text: "포도당 농도 증가\n→ GKRP 분리", correct: true,
-        effect: "혈당 상승으로 GKRP(조절 단백질)가 핵에서 Glucokinase를 방출!\n세포질로 나와 포도당과 직접 결합하여 활성화됩니다.",
-        resultType: "super", resultText: "효과는 굉장했다!" },
-      { text: "G-6-P 결합", correct: false,
-        effect: "Glucokinase는 G-6-P에 의해 억제되지 않습니다.\n이것이 Hexokinase I과의 핵심 차이점입니다!",
-        resultType: "miss", resultText: "효과는 미미했다!" },
-      { text: "GKRP 핵 내 고정", correct: false,
-        effect: "GKRP가 Glucokinase를 핵 안에 가두면 오히려 비활성화됩니다!",
-        resultType: "fail", resultText: "역효과!" },
-      { text: "ATP 조절부위 결합", correct: false,
-        effect: "Glucokinase는 단량체로 별도의 알로스테릭 조절 부위가 없습니다.\n시간적 협동성으로 포도당 농도에 직접 반응합니다.",
-        resultType: "miss", resultText: "효과는 미미했다!" }
+    situation: "식후 혈당이 15mM까지 상승했습니다!\n간세포의 Glucokinase를 활성화할 인자를 선택하세요.",
+    factors: [
+      { name:"포도당(혈당↑)", icon:"🍬", sub:"혈당 상승 신호", correct:true  },
+      { name:"G-6-P",         icon:"🔴", sub:"포도당-6-인산", correct:false },
+      { name:"ATP",           icon:"⚡", sub:"에너지 신호",   correct:false },
+      { name:"GKRP",          icon:"🔒", sub:"조절 단백질",   correct:false }
     ],
-    explanation: "Glucokinase(HK IV)는 Km이 높아 평상시 거의 작동하지 않습니다.\n식후 혈당↑ → GKRP에서 분리 → 세포질 이동 → 포도당 농도에 의해 직접 활성화됩니다.\nG-6-P에 의해 억제되지 않는 것이 핵심 차이점!"
+    wrongEffect: "Glucokinase는 이 인자에 의해 조절되지 않습니다.\n혈당(포도당) 농도가 직접적인 활성 신호입니다.",
+    moves: [
+      { text:"GKRP에서 분리 → 세포질 이동", correct:true,
+        effect:"혈당 상승 → GKRP가 Glucokinase를 핵에서 방출!\n세포질로 이동 → 포도당과 직접 결합 → 활성화!",
+        resultType:"super", resultText:"효과는 굉장했다!" },
+      { text:"알로스테릭 조절부위 결합", correct:false,
+        effect:"Glucokinase는 단량체로 별도 알로스테릭 조절 부위가 없습니다.\n시간적 협동성으로 작동합니다.",
+        resultType:"miss", resultText:"효과는 미미했다!" },
+      { text:"핵 내 고정 (GKRP 결합)", correct:false,
+        effect:"GKRP 결합은 Glucokinase를 핵 안에 가둬 비활성화합니다.\n완전히 역효과입니다!",
+        resultType:"fail", resultText:"역효과!" },
+      { text:"G-6-P에 의한 억제 차단", correct:false,
+        effect:"Glucokinase는 G-6-P에 의해 억제되지 않습니다!\n이것이 Hexokinase I과의 핵심 차이점입니다.",
+        resultType:"miss", resultText:"효과는 미미했다!" }
+    ],
+    explanation:"식후 혈당↑ → GKRP 분리 → 세포질 이동 → 포도당 농도에 의해 직접 활성화\nG-6-P 억제 없음 = HK IV의 핵심 특징!"
   },
   {
-    round: 3,
-    enzyme: "PFK-1",
-    enzymeSub: "3단계 조절 효소 (사량체)",
-    enzymeImg: "images/pfk1.jpg",
-    activityStart: 90,
-    goalActivity: 15,
+    round: 3, enzyme: "PFK-1", enzymeSub: "3단계 조절 효소 (사량체)",
+    enzymeImg: "images/pfk1.jpg", activityStart: 90, goalActivity: 15,
     energyBadge: "⚡ ATP 고농도 (에너지 충분)",
-    situation: "세포 내 ATP 농도가 급격히 상승했습니다!\n해당 과정을 늦춰야 합니다. PFK-1을 억제하세요.",
-    goal: "inhibit",
-    options: [
-      { text: "ATP\n알로스테릭 조절부위 결합", correct: true,
-        effect: "ATP가 알로스테릭 조절 부위에 결합 → R상태→T상태 전환!\nF-6-P에 대한 친화력이 감소하여 활성이 억제됩니다.",
-        resultType: "super", resultText: "효과는 굉장했다!" },
-      { text: "AMP 결합", correct: false,
-        effect: "AMP는 ATP와 경쟁하여 T→R 전환을 유도합니다.\nATP가 충분한 상황에서는 AMP가 부족합니다.",
-        resultType: "miss", resultText: "효과는 미미했다!" },
-      { text: "F-2,6-BP 결합", correct: false,
-        effect: "F-2,6-BP는 PFK-1의 촉진 인자입니다!\n식후 인슐린 신호로 생성되어 해당 과정을 가속합니다.",
-        resultType: "fail", resultText: "역효과!" },
-      { text: "F-6-P 공급 차단", correct: false,
-        effect: "기질 공급 차단은 이 게임의 조절 메커니즘이 아닙니다.\n알로스테릭 조절이 실제 세포 내 조절 방식입니다.",
-        resultType: "miss", resultText: "효과는 미미했다!" }
+    situation: "ATP 농도가 급격히 상승했습니다!\nPFK-1을 억제할 조절 인자를 선택하세요.",
+    factors: [
+      { name:"ATP",     icon:"⚡", sub:"고농도 에너지 신호", correct:true  },
+      { name:"AMP",     icon:"🔋", sub:"에너지 고갈 신호",  correct:false },
+      { name:"F-2,6-BP",icon:"🍽️", sub:"인슐린 신호 산물", correct:false },
+      { name:"F-6-P",   icon:"🔵", sub:"기질",              correct:false }
     ],
-    explanation: "ATP는 PFK-1에서 기질(활성 부위)이자 억제제(조절 부위) 역할을 동시에 합니다.\nATP 고농도 → 조절 부위에 결합 → T상태 전환 → F-6-P 친화력 감소 → 활성 억제"
+    wrongEffect: "이 인자는 이 상황에서 PFK-1 억제에 효과가 없습니다.\nATP 고농도 상태에서는 ATP 자체가 핵심 억제 신호입니다.",
+    moves: [
+      { text:"알로스테릭 조절부위 결합", correct:true,
+        effect:"ATP가 알로스테릭 조절 부위에 결합!\nR상태 → T상태 전환 → F-6-P 친화력 감소 → 억제!",
+        resultType:"super", resultText:"효과는 굉장했다!" },
+      { text:"활성부위 결합 (기질 경쟁)", correct:false,
+        effect:"ATP는 활성부위에서 기질 역할도 하지만,\n억제는 조절부위 결합으로 이루어집니다.",
+        resultType:"miss", resultText:"효과는 미미했다!" },
+      { text:"기질(F-6-P) 공급 차단", correct:false,
+        effect:"기질 공급 차단은 알로스테릭 조절이 아닙니다.\n세포 내 실제 조절 메커니즘이 아닙니다.",
+        resultType:"miss", resultText:"효과는 미미했다!" },
+      { text:"효소 인산화 (PKA)", correct:false,
+        effect:"PFK-1 인산화 조절은 주요 메커니즘이 아닙니다.\nATP 직접 결합이 핵심입니다.",
+        resultType:"miss", resultText:"효과는 미미했다!" }
+    ],
+    explanation:"ATP는 PFK-1에서 기질(활성부위)이자 억제제(조절부위) 이중 역할!\nATP 고농도 → 조절부위 결합 → T상태 → F-6-P 친화력↓ → 억제"
   },
   {
-    round: 4,
-    enzyme: "PFK-1",
-    enzymeSub: "3단계 조절 효소 — TCA 피드백",
-    enzymeImg: "images/pfk1.jpg",
-    activityStart: 75,
-    goalActivity: 20,
-    energyBadge: "🔄 TCA 회로 활발히 진행 중",
-    situation: "미토콘드리아의 TCA 회로가 활발히 돌아가고 있습니다.\n에너지 공급이 충분하니 해당 과정을 억제해야 합니다.\n어떤 TCA 산물이 PFK-1을 억제할까요?",
-    goal: "inhibit",
-    options: [
-      { text: "시트르산\n전용 결합부위 결합", correct: true,
-        effect: "TCA 회로의 첫 번째 산물 시트르산이 PFK-1의 전용 결합 부위에 결합!\nT상태로 전환 → ATP의 조절부위 결합을 촉진 → 강력 억제!",
-        resultType: "super", resultText: "효과는 굉장했다!" },
-      { text: "ADP 결합", correct: false,
-        effect: "ADP는 ATP 고갈 신호입니다. TCA가 활발한 상황에서는 ADP가 부족합니다.\n오히려 PFK-1 촉진 인자입니다.",
-        resultType: "fail", resultText: "역효과!" },
-      { text: "H⁺ 방출", correct: false,
-        effect: "H⁺는 무산소 호흡(젖산 발효) 시 축적되는 억제 신호입니다.\nTCA 회로가 정상 작동 중인 지금은 관련이 없습니다.",
-        resultType: "miss", resultText: "효과는 미미했다!" },
-      { text: "F-1,6-BP 공급", correct: false,
-        effect: "F-1,6-BP는 Pyruvate Kinase의 촉진 인자입니다.\nPFK-1에 대한 억제 효과는 없습니다.",
-        resultType: "miss", resultText: "효과는 미미했다!" }
+    round: 4, enzyme: "PFK-1", enzymeSub: "3단계 조절 효소 — TCA 피드백",
+    enzymeImg: "images/pfk1.jpg", activityStart: 75, goalActivity: 20,
+    energyBadge: "🔄 TCA 회로 활발 진행",
+    situation: "TCA 회로가 활발히 진행 중입니다.\nTCA 산물로 PFK-1을 억제할 인자를 선택하세요.",
+    factors: [
+      { name:"시트르산", icon:"🍋", sub:"TCA 첫 번째 산물", correct:true  },
+      { name:"ADP",     icon:"🔋", sub:"ADP/AMP 신호",     correct:false },
+      { name:"H⁺",      icon:"⚗️", sub:"젖산 발효 산물",   correct:false },
+      { name:"F-1,6-BP",icon:"🔄", sub:"3단계 산물",       correct:false }
     ],
-    explanation: "시트르산은 TCA 회로의 첫 산물로 '에너지 충분' 신호입니다.\nPFK-1의 별도 전용 결합 부위에 결합하여 T상태를 유도하고, ATP의 조절부위 결합을 더욱 촉진합니다."
+    wrongEffect: "이 인자는 TCA 회로의 '에너지 충분' 신호로 PFK-1을 억제하지 않습니다.\nTCA 회로 첫 산물인 시트르산이 핵심 억제 신호입니다.",
+    moves: [
+      { text:"전용 결합부위에 결합", correct:true,
+        effect:"시트르산이 PFK-1의 별도 전용 결합 부위에 결합!\nT상태 유도 → ATP의 조절부위 결합까지 촉진 → 강력 억제!",
+        resultType:"super", resultText:"효과는 굉장했다!" },
+      { text:"활성부위 직접 차단", correct:false,
+        effect:"시트르산은 활성부위를 직접 차단하지 않습니다.\n전용 결합부위를 통한 알로스테릭 조절입니다.",
+        resultType:"miss", resultText:"효과는 미미했다!" },
+      { text:"알로스테릭 조절부위 결합", correct:false,
+        effect:"시트르산은 ATP 조절부위가 아닌 전용 결합부위에 결합합니다.\n이 부위 결합으로 ATP 결합을 간접 촉진합니다.",
+        resultType:"miss", resultText:"효과는 미미했다!" },
+      { text:"기질 공급 차단", correct:false,
+        effect:"시트르산은 기질 공급을 차단하지 않습니다.\n직접 결합 조절이 메커니즘입니다.",
+        resultType:"miss", resultText:"효과는 미미했다!" }
+    ],
+    explanation:"시트르산(TCA 첫 산물) → 전용 결합부위 결합 → T상태 → ATP 결합 촉진 → 강력 억제"
   },
   {
-    round: 5,
-    enzyme: "PFK-1",
-    enzymeSub: "3단계 조절 효소 — 에너지 위기",
-    enzymeImg: "images/pfk1.jpg",
-    activityStart: 20,
-    goalActivity: 85,
+    round: 5, enzyme: "PFK-1", enzymeSub: "3단계 조절 효소 — 에너지 위기",
+    enzymeImg: "images/pfk1.jpg", activityStart: 20, goalActivity: 85,
     energyBadge: "🆘 ATP 고갈 — AMP 급증",
-    situation: "ATP가 고갈되어 AMP가 급격히 축적됩니다!\n세포가 에너지 위기 상태입니다.\nPFK-1을 활성화하여 해당 과정을 가속해야 합니다.",
-    goal: "activate",
-    options: [
-      { text: "AMP/ADP\n알로스테릭 부위 경쟁 결합", correct: true,
-        effect: "AMP·ADP가 알로스테릭 조절 부위에서 ATP와 경쟁하여 결합!\nATP의 억제 효과를 차단 → T→R 전환 → PFK-1 활성화!",
-        resultType: "super", resultText: "효과는 굉장했다!" },
-      { text: "시트르산 결합", correct: false,
-        effect: "시트르산은 TCA가 활발할 때의 억제 신호입니다.\n에너지 위기 상황에서는 시트르산이 부족합니다.",
-        resultType: "miss", resultText: "효과는 미미했다!" },
-      { text: "ATP 추가 공급", correct: false,
-        effect: "ATP가 풍부하면 PFK-1이 오히려 억제됩니다.\n에너지 위기 상황과 모순입니다.",
-        resultType: "fail", resultText: "역효과!" },
-      { text: "H⁺ 방출 차단", correct: false,
-        effect: "H⁺ 조절은 무산소 호흡 상황에서의 메커니즘입니다.\n이 상황의 주요 신호는 AMP/ADP 비율입니다.",
-        resultType: "miss", resultText: "효과는 미미했다!" }
+    situation: "ATP가 고갈되어 AMP가 급증합니다!\nPFK-1을 활성화할 인자를 선택하세요.",
+    factors: [
+      { name:"AMP / ADP", icon:"🔋", sub:"에너지 고갈 신호", correct:true  },
+      { name:"시트르산",   icon:"🍋", sub:"TCA 산물",        correct:false },
+      { name:"ATP",       icon:"⚡", sub:"에너지 신호",      correct:false },
+      { name:"H⁺",        icon:"⚗️", sub:"산성화 신호",     correct:false }
     ],
-    explanation: "ATP 고갈 → AMP·ADP 증가 → 알로스테릭 조절 부위에서 ATP와 경쟁 결합\n→ ATP의 억제 효과 차단 → PFK-1 R상태 유지 → 해당 과정 가속!"
+    wrongEffect: "이 인자는 ATP 고갈 상황에서 PFK-1 촉진에 효과가 없습니다.\nAMP/ADP가 ATP와 경쟁 결합하는 것이 핵심 메커니즘입니다.",
+    moves: [
+      { text:"알로스테릭 부위 경쟁 결합", correct:true,
+        effect:"AMP·ADP가 조절부위에서 ATP와 경쟁하여 결합!\nATP의 억제 효과 차단 → T→R 전환 → PFK-1 활성화!",
+        resultType:"super", resultText:"효과는 굉장했다!" },
+      { text:"활성부위 결합 (기질 역할)", correct:false,
+        effect:"AMP/ADP는 PFK-1의 기질이 아닙니다.\n조절부위에서 경쟁 결합으로 작용합니다.",
+        resultType:"miss", resultText:"효과는 미미했다!" },
+      { text:"ATP 공급 차단", correct:false,
+        effect:"ATP 공급 차단은 AMP/ADP의 기능이 아닙니다.\n이미 ATP가 고갈된 상황입니다.",
+        resultType:"miss", resultText:"효과는 미미했다!" },
+      { text:"효소 탈인산화 촉진", correct:false,
+        effect:"PFK-1은 인산화/탈인산화로 주로 조절되지 않습니다.\n알로스테릭 경쟁 결합이 핵심입니다.",
+        resultType:"miss", resultText:"효과는 미미했다!" }
+    ],
+    explanation:"ATP 고갈 → AMP·ADP 증가 → 조절부위에서 ATP와 경쟁 결합\n→ ATP 억제 효과 차단 → R상태 유지 → 해당 과정 가속!"
   },
   {
-    round: 6,
-    enzyme: "PFK-1",
-    enzymeSub: "3단계 조절 효소 — 인슐린 신호",
-    enzymeImg: "images/pfk1.jpg",
-    activityStart: 40,
-    goalActivity: 95,
+    round: 6, enzyme: "PFK-1", enzymeSub: "3단계 조절 효소 — 식후 인슐린",
+    enzymeImg: "images/pfk1.jpg", activityStart: 40, goalActivity: 95,
     energyBadge: "🍽️ 식후 — 인슐린 분비",
-    situation: "식후 혈당 상승으로 인슐린이 분비되어 RTK 신호 전달이 활성화됩니다.\nPFK-2를 활성화하여 PFK-1을 강력히 촉진해야 합니다.\n어떤 인자가 최종적으로 PFK-1을 R상태로 전환시킬까요?",
-    goal: "activate",
-    options: [
-      { text: "F-2,6-BP\nT→R 전환 촉진", correct: true,
-        effect: "인슐린-RTK → PFK-2 활성화 → F-2,6-BP 생성!\nF-2,6-BP가 T상태 PFK-1을 R상태로 전환 → F-6-P 친화력 대폭 증가!",
-        resultType: "super", resultText: "효과는 굉장했다!" },
-      { text: "ATP 결합", correct: false,
-        effect: "ATP는 PFK-1의 억제제입니다. 식후 해당 과정 촉진에 역행합니다.",
-        resultType: "fail", resultText: "역효과!" },
-      { text: "시트르산 결합", correct: false,
-        effect: "시트르산은 억제 신호입니다. 인슐린 신호와 반대 방향입니다.",
-        resultType: "fail", resultText: "역효과!" },
-      { text: "알라닌 결합", correct: false,
-        effect: "알라닌은 Pyruvate Kinase의 억제제입니다.\nPFK-1에는 효과가 없습니다.",
-        resultType: "miss", resultText: "효과는 미미했다!" }
+    situation: "인슐린 신호로 PFK-2가 활성화됩니다!\nPFK-1을 촉진할 최종 인자를 선택하세요.",
+    factors: [
+      { name:"F-2,6-BP", icon:"🍽️", sub:"PFK-2 산물",     correct:true  },
+      { name:"ATP",      icon:"⚡", sub:"에너지 신호",     correct:false },
+      { name:"시트르산", icon:"🍋", sub:"TCA 산물",        correct:false },
+      { name:"알라닌",   icon:"🔤", sub:"아미노산 신호",   correct:false }
     ],
-    explanation: "인슐린-RTK → PFK-2 활성화 → F-2,6-BP 생성 → PFK-1 T→R 전환\nF-2,6-BP는 식후 가장 강력한 PFK-1 촉진 신호입니다!"
+    wrongEffect: "이 인자는 식후 PFK-1 촉진에 효과가 없습니다.\n인슐린-RTK → PFK-2 → F-2,6-BP 생성이 핵심 경로입니다.",
+    moves: [
+      { text:"T→R 전환 촉진 (알로스테릭)", correct:true,
+        effect:"F-2,6-BP가 T상태 PFK-1을 R상태로 전환!\nF-6-P 친화력 대폭 증가 → 해당 과정 강력 촉진!",
+        resultType:"super", resultText:"효과는 굉장했다!" },
+      { text:"활성부위에 결합", correct:false,
+        effect:"F-2,6-BP는 활성부위가 아닌 알로스테릭 부위에 결합합니다.",
+        resultType:"miss", resultText:"효과는 미미했다!" },
+      { text:"ATP 억제 차단 (경쟁)", correct:false,
+        effect:"F-2,6-BP는 ATP와 직접 경쟁하지 않습니다.\nT→R 구조 전환을 통한 간접 활성화입니다.",
+        resultType:"miss", resultText:"효과는 미미했다!" },
+      { text:"PFK-1 인산화 촉진", correct:false,
+        effect:"PFK-1은 인산화로 직접 활성화되지 않습니다.\nF-2,6-BP에 의한 알로스테릭 조절이 핵심입니다.",
+        resultType:"miss", resultText:"효과는 미미했다!" }
+    ],
+    explanation:"인슐린-RTK → PFK-2 활성화 → F-2,6-BP 생성 → PFK-1 T→R 전환\nF-2,6-BP는 식후 가장 강력한 PFK-1 촉진 신호!"
   },
   {
-    round: 7,
-    enzyme: "Pyruvate Kinase",
-    enzymeSub: "10단계 조절 효소 (사량체)",
-    enzymeImg: "images/pk.jpg",
-    activityStart: 80,
-    goalActivity: 15,
+    round: 7, enzyme: "Pyruvate Kinase", enzymeSub: "10단계 조절 효소 (사량체)",
+    enzymeImg: "images/pk.jpg", activityStart: 80, goalActivity: 15,
     energyBadge: "🧈 지방산 β-산화 활발",
-    situation: "지방산 β-산화가 활발히 진행되어 아세틸-CoA가 대량 생성됩니다.\n에너지 공급이 충분하므로 Pyruvate Kinase를 억제해야 합니다.",
-    goal: "inhibit",
-    options: [
-      { text: "아세틸-CoA\n조절 부위 결합", correct: true,
-        effect: "β-산화 → 아세틸-CoA 생성 → OAA와 결합 → 시트르산 → 세포질로 이동\n→ ATP-시트르산 분해효소로 아세틸-CoA 재생 → PK 조절부위 결합 → 억제!",
-        resultType: "super", resultText: "효과는 굉장했다!" },
-      { text: "F-1,6-BP 공급", correct: false,
-        effect: "F-1,6-BP는 PK의 강력한 촉진 인자입니다 (피드포워드 조절).\n아세틸-CoA가 충분한 상황에서는 역효과입니다.",
-        resultType: "fail", resultText: "역효과!" },
-      { text: "AMP 결합", correct: false,
-        effect: "AMP는 에너지 부족 신호로 PK를 촉진할 수 있습니다.\n지방산 β-산화로 에너지가 충분한 현재 상황과 맞지 않습니다.",
-        resultType: "miss", resultText: "효과는 미미했다!" },
-      { text: "인슐린 신호", correct: false,
-        effect: "인슐린-PKB(Akt)는 PP1을 활성화하여 PK를 탈인산화 → 촉진합니다.\n억제가 필요한 지금 상황에는 맞지 않습니다.",
-        resultType: "fail", resultText: "역효과!" }
+    situation: "지방산 β-산화로 아세틸-CoA가 대량 생성됩니다!\nPyruvate Kinase를 억제할 인자를 선택하세요.",
+    factors: [
+      { name:"아세틸-CoA", icon:"🧈", sub:"β-산화 산물",    correct:true  },
+      { name:"F-1,6-BP",  icon:"🔄", sub:"3단계 산물",      correct:false },
+      { name:"AMP",       icon:"🔋", sub:"에너지 고갈 신호", correct:false },
+      { name:"인슐린",    icon:"💉", sub:"혈당 조절 호르몬", correct:false }
     ],
-    explanation: "지방산 β-산화 → 아세틸-CoA 과잉 → 시트르산 경유 세포질로 → 아세틸-CoA 재생\n→ PK 조절 부위 결합 → 억제\n고농도 ATP·아세틸-CoA·알라닌 모두 '에너지 충분' 신호!"
+    wrongEffect: "이 인자는 β-산화 상황에서 PK 억제에 효과가 없습니다.\n아세틸-CoA가 에너지 충분 신호로 PK 조절부위에 결합합니다.",
+    moves: [
+      { text:"조절부위 결합 (억제)", correct:true,
+        effect:"아세틸-CoA → OAA와 결합 → 시트르산 → 세포질 이동\n→ 재분해 → PK 조절부위 결합 → 억제!",
+        resultType:"super", resultText:"효과는 굉장했다!" },
+      { text:"활성부위 직접 차단", correct:false,
+        effect:"아세틸-CoA는 활성부위를 직접 차단하지 않습니다.\n조절부위를 통한 알로스테릭 억제입니다.",
+        resultType:"miss", resultText:"효과는 미미했다!" },
+      { text:"T→R 전환 촉진", correct:false,
+        effect:"아세틸-CoA는 PK를 억제하는 인자입니다.\nT→R 전환이 아닌 R→T 전환을 유도합니다.",
+        resultType:"fail", resultText:"역효과!" },
+      { text:"기질(PEP) 공급 차단", correct:false,
+        effect:"아세틸-CoA는 기질 공급을 차단하지 않습니다.\n직접 결합 조절이 메커니즘입니다.",
+        resultType:"miss", resultText:"효과는 미미했다!" }
+    ],
+    explanation:"지방산 β-산화 → 아세틸-CoA 과잉 → 시트르산 경유 세포질 → PK 조절부위 결합 → 억제"
   },
   {
-    round: 8,
-    enzyme: "Pyruvate Kinase",
-    enzymeSub: "10단계 조절 효소 — 피드포워드",
-    enzymeImg: "images/pk.jpg",
-    activityStart: 25,
-    goalActivity: 90,
-    energyBadge: "⚡ F-1,6-BP 과잉 축적 (병목!)",
-    situation: "F-1,6-BP가 과잉 축적되어 병목 현상이 발생했습니다!\nPyruvate Kinase를 활성화하여 병목을 해결해야 합니다.",
-    goal: "activate",
-    options: [
-      { text: "F-1,6-BP\n조절 부위 결합", correct: true,
-        effect: "F-1,6-BP가 PK 조절 부위에 결합 → T→R 전환 → 활성화!\n10단계에서 3단계 산물이 직접 활성화 → 피드포워드 조절!",
-        resultType: "super", resultText: "효과는 굉장했다!" },
-      { text: "ATP 결합", correct: false,
-        effect: "ATP는 PK의 억제 인자입니다.\nF-1,6-BP 병목 해결에는 역효과입니다.",
-        resultType: "fail", resultText: "역효과!" },
-      { text: "아세틸-CoA 결합", correct: false,
-        effect: "아세틸-CoA는 에너지 충분 신호로 PK를 억제합니다.",
-        resultType: "fail", resultText: "역효과!" },
-      { text: "알라닌 결합", correct: false,
-        effect: "알라닌은 피루브산이 충분하다는 신호로 PK를 억제합니다.",
-        resultType: "fail", resultText: "역효과!" }
+    round: 8, enzyme: "Pyruvate Kinase", enzymeSub: "10단계 조절 효소 — 피드포워드",
+    enzymeImg: "images/pk.jpg", activityStart: 25, goalActivity: 90,
+    energyBadge: "⚡ F-1,6-BP 과잉 (병목!)",
+    situation: "F-1,6-BP가 과잉 축적되어 병목이 생겼습니다!\nPyruvate Kinase를 활성화할 인자를 선택하세요.",
+    factors: [
+      { name:"F-1,6-BP",  icon:"🔄", sub:"3단계 산물 (피드포워드)", correct:true  },
+      { name:"ATP",       icon:"⚡", sub:"에너지 신호",              correct:false },
+      { name:"아세틸-CoA",icon:"🧈", sub:"β-산화 산물",             correct:false },
+      { name:"알라닌",    icon:"🔤", sub:"아미노산 신호",            correct:false }
     ],
-    explanation: "F-1,6-BP (3단계 산물) → PK (10단계) 직접 활성화 = 피드포워드 조절!\n앞 단계의 중간 산물이 뒷 단계 효소를 미리 활성화하여 원활한 흐름을 보장합니다."
+    wrongEffect: "이 인자는 PK 활성화에 효과가 없습니다.\nF-1,6-BP가 3단계에서 10단계 효소를 직접 활성화합니다 (피드포워드).",
+    moves: [
+      { text:"조절부위 결합 (T→R 촉진)", correct:true,
+        effect:"F-1,6-BP가 PK 조절부위에 결합 → T→R 전환 → 활성화!\n3단계 산물 → 10단계 효소 미리 활성화 = 피드포워드!",
+        resultType:"super", resultText:"효과는 굉장했다!" },
+      { text:"활성부위 기질 역할", correct:false,
+        effect:"F-1,6-BP는 PK의 기질이 아닙니다.\n조절부위 결합을 통한 알로스테릭 활성화입니다.",
+        resultType:"miss", resultText:"효과는 미미했다!" },
+      { text:"ATP 억제 효과 차단", correct:false,
+        effect:"F-1,6-BP는 ATP와 직접 경쟁하지 않습니다.\n구조 전환(T→R)을 통한 활성화가 메커니즘입니다.",
+        resultType:"miss", resultText:"효과는 미미했다!" },
+      { text:"효소 탈인산화 (인슐린 경로)", correct:false,
+        effect:"탈인산화는 인슐린-PKB-PP1 경로입니다.\nF-1,6-BP는 별개의 알로스테릭 조절 인자입니다.",
+        resultType:"miss", resultText:"효과는 미미했다!" }
+    ],
+    explanation:"F-1,6-BP (3단계 산물) → PK (10단계) 직접 활성화 = 피드포워드 조절!\n앞 단계 산물이 뒷 단계 효소를 미리 활성화하여 흐름 보장"
   }
 ];
 
-// ──────────────────────────────────────────────
+// ─────────────────────────────
 //  게임 상태
-// ──────────────────────────────────────────────
+// ─────────────────────────────
 let currentRound = 0;
 let score = 0;
-let answered = false;
+let selectedFactor = null; // 1단계에서 선택한 인자
 
 function startGame() {
   document.getElementById('start-screen').style.display = 'none';
@@ -803,7 +872,7 @@ function startGame() {
 }
 
 function loadRound() {
-  answered = false;
+  selectedFactor = null;
   const s = scenarios[currentRound];
 
   // 상단 바
@@ -827,6 +896,15 @@ function loadRound() {
   // 결과 오버레이 숨김
   document.getElementById('result-overlay').classList.remove('show');
 
+  // 플레이어 복원
+  document.getElementById('player-icon').style.display = 'flex';
+  document.getElementById('selected-factor').style.display = 'none';
+
+  // 패널 초기화 (factor 패널 보이고, move 패널 숨김)
+  document.getElementById('factor-panel').style.display = '';
+  document.getElementById('move-panel').style.display = 'none';
+  document.getElementById('phase-label').textContent = '⬇ 조절 인자를 선택하세요';
+
   // 버튼 숨김 (인트로 동안)
   setButtonsVisible(false);
 
@@ -834,7 +912,6 @@ function loadRound() {
   document.getElementById('energy-badge').textContent = s.energyBadge;
 
   // ── 인트로 시퀀스 ──
-  // 1) 스프라이트 숨긴 상태에서 등장 텍스트
   const spriteArea = document.getElementById('enemy-sprite-area');
   spriteArea.style.opacity = '0';
   spriteArea.style.transform = 'translateX(80px)';
@@ -842,7 +919,6 @@ function loadRound() {
 
   const introName = s.enzyme.split('\n')[0];
   typeText(`앗! 야생의 ${introName}${josa(introName, '이', '가')} 등장했다!`, () => {
-    // 2) 이미지 로드 후 슬라이드인
     img.onload = () => {
       spriteArea.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
       spriteArea.style.opacity = '1';
@@ -857,7 +933,6 @@ function loadRound() {
     };
     img.src = s.enzymeImg;
 
-    // 3) 1.5초 후 상황 텍스트 + 파티 카드 표시
     setTimeout(() => {
       renderPartyCards(s);
       setButtonsVisible(true);
@@ -866,43 +941,41 @@ function loadRound() {
   });
 }
 
-// 파티 카드 렌더링
+// 파티 카드 렌더링 (1단계: 인자 선택)
 const themes = ['theme-red', 'theme-blue', 'theme-green', 'theme-gold'];
 function renderPartyCards(s) {
-  const shuffled = shuffleArray([...s.options]);
+  const shuffled = shuffleArray([...s.factors]);
   for (let i = 0; i < 4; i++) {
-    const opt = shuffled[i];
-    const btn = document.getElementById(`btn${i}`);
-    btn.dataset.idx = s.options.indexOf(opt);
+    const f = shuffled[i];
+    const btn = document.getElementById(`fbtn${i}`);
+    btn.dataset.correct = f.correct ? '1' : '0';
+    btn.dataset.name = f.name;
+    btn.dataset.icon = f.icon;
     btn.className = `action-btn ${themes[i]}`;
     btn.disabled = false;
-
-    const name = opt.text.replace(/\n/g, ' ');
-    const icon = getFactorIcon(opt.text);
     btn.innerHTML = `
-      <div class="party-icon">${icon}</div>
+      <div class="party-icon">${f.icon}</div>
       <div class="party-info">
-        <div class="party-name">${name}</div>
+        <div class="party-name">${f.name}</div>
+        <div class="party-sub">${f.sub}</div>
         <div class="party-hp-track"><div class="party-hp-fill"></div></div>
       </div>`;
   }
 }
 
-// 조절 인자 이모지 매핑
-function getFactorIcon(text) {
-  if (text.includes('ATP') && !text.includes('AMP') && !text.includes('ADP')) return '⚡';
-  if (text.includes('AMP') || text.includes('ADP')) return '🔋';
-  if (text.includes('시트르산')) return '🍋';
-  if (text.includes('F-2,6-BP')) return '🍽️';
-  if (text.includes('F-1,6-BP')) return '🔄';
-  if (text.includes('G-6-P')) return '🔴';
-  if (text.includes('아세틸')) return '🧈';
-  if (text.includes('알라닌')) return '🔤';
-  if (text.includes('H⁺')) return '⚗️';
-  if (text.includes('포도당') || text.includes('GKRP')) return '🍬';
-  if (text.includes('인슐린') || text.includes('인산화')) return '💉';
-  if (text.includes('F-6-P')) return '🔵';
-  return '🧪';
+// 기술 버튼 렌더링 (2단계: 기술 선택)
+function renderMoves(s) {
+  const shuffled = shuffleArray([...s.moves]);
+  for (let i = 0; i < 4; i++) {
+    const m = shuffled[i];
+    const btn = document.getElementById(`mbtn${i}`);
+    btn.dataset.correct = m.correct ? '1' : '0';
+    btn.dataset.effect = m.effect;
+    btn.dataset.resultType = m.resultType;
+    btn.dataset.resultText = m.resultText;
+    btn.disabled = false;
+    btn.textContent = m.text;
+  }
 }
 
 function setButtonsVisible(visible) {
@@ -916,73 +989,79 @@ function setActivity(val) {
   fill.className = 'bar-fill ' + (val >= 60 ? 'high' : val >= 30 ? 'mid' : 'low');
 }
 
-function selectAction(btnIdx) {
-  if (answered) return;
-  answered = true;
-
+function showResult(resultText, resultType, effectText, isCorrect) {
   const s = scenarios[currentRound];
-  const btn = document.getElementById(`btn${btnIdx}`);
-  const optionIdx = parseInt(btn.dataset.idx);
-  const chosen = s.options[optionIdx];
-
-  // 선택 카드 애니메이션
-  btn.classList.add('selected');
-
-  // 모든 버튼 비활성화
-  for (let i = 0; i < 4; i++) document.getElementById(`btn${i}`).disabled = true;
-
-  // 플레이어 자리에 선택한 인자 표시
-  const icon = getFactorIcon(chosen.text);
-  const name = chosen.text.replace(/\n/g, ' ');
-  document.getElementById('player-icon').style.display = 'none';
-  const sf = document.getElementById('selected-factor');
-  document.getElementById('selected-factor-icon').textContent = icon;
-  document.getElementById('selected-factor-name').textContent = name;
-  sf.style.display = 'flex';
-
-  // 배틀 텍스트: ~을(를) 사용했다!
-  typeText(`${name}${josa(name.split(' ')[0], '을', '를')} 사용했다!`);
-
-  // 0.6초 후 정답/오답 판정 + 효소 흔들기
   setTimeout(() => {
-    // 카드 정답 표시
-    for (let i = 0; i < 4; i++) {
-      const b = document.getElementById(`btn${i}`);
-      const idx = parseInt(b.dataset.idx);
-      if (s.options[idx].correct) b.classList.add('correct');
-    }
-    if (!chosen.correct) btn.classList.add('wrong');
-
-    if (chosen.correct) {
-      score++;
-      shakeSprite('enemy-sprite-area');
-    } else {
-      shakeSprite('player-icon');
-    }
-    setActivity(s.goalActivity);
-  }, 600);
-
-  // 1.4초 후 결과 오버레이
-  setTimeout(() => {
-    // 플레이어 복원
     document.getElementById('player-icon').style.display = 'flex';
-    sf.style.display = 'none';
-
+    document.getElementById('selected-factor').style.display = 'none';
     const overlay = document.getElementById('result-overlay');
     const label = document.getElementById('result-label');
-    const expDiv = document.getElementById('result-explanation');
-
-    label.textContent = chosen.resultText;
-    label.className = '';
-    label.classList.add(chosen.resultType);
-    expDiv.textContent = chosen.effect + '\n\n📚 ' + s.explanation;
-
-    const nextBtn = document.getElementById('next-btn');
-    nextBtn.textContent = currentRound === scenarios.length - 1 ? '결과 보기 🏆' : '다음 라운드 ▶';
-
+    label.textContent = resultText;
+    label.className = resultType;
+    document.getElementById('result-explanation').textContent = effectText + '\n\n📚 ' + s.explanation;
+    document.getElementById('next-btn').textContent = currentRound === scenarios.length - 1 ? '결과 보기 🏆' : '다음 라운드 ▶';
     overlay.classList.add('show');
     document.getElementById('score-info').textContent = `점수: ${score}`;
   }, 1400);
+}
+
+function selectFactor(btnIdx) {
+  const btn = document.getElementById(`fbtn${btnIdx}`);
+  const isCorrect = btn.dataset.correct === '1';
+  const name = btn.dataset.name;
+  const icon = btn.dataset.icon;
+
+  for (let i = 0; i < 4; i++) document.getElementById(`fbtn${i}`).disabled = true;
+
+  document.getElementById('player-icon').style.display = 'none';
+  document.getElementById('selected-factor-icon').textContent = icon;
+  document.getElementById('selected-factor-name').textContent = name;
+  document.getElementById('selected-factor').style.display = 'flex';
+
+  selectedFactor = { name, icon };
+
+  if (!isCorrect) {
+    const s = scenarios[currentRound];
+    typeText(`${name}${josa(name, '을', '를')} 선택했다!\n하지만... 효과가 없다!`);
+    setTimeout(() => { shakeSprite('selected-factor'); }, 600);
+    showResult('효과는 미미했다!', 'miss', s.wrongEffect, false);
+  } else {
+    typeText(`${name}${josa(name, '이', '가')} 등장했다!\n어떤 기술을 사용하겠습니까?`, () => {
+      const s = scenarios[currentRound];
+      renderMoves(s);
+      document.getElementById('factor-panel').style.display = 'none';
+      document.getElementById('move-panel').style.display = '';
+      document.getElementById('phase-label').textContent = '⚔ 기술을 선택하세요';
+    });
+  }
+}
+
+function selectMove(btnIdx) {
+  const btn = document.getElementById(`mbtn${btnIdx}`);
+  const isCorrect = btn.dataset.correct === '1';
+  const effect = btn.dataset.effect;
+  const resultType = btn.dataset.resultType;
+  const resultText = btn.dataset.resultText;
+  const moveName = btn.textContent;
+  const s = scenarios[currentRound];
+
+  for (let i = 0; i < 4; i++) document.getElementById(`mbtn${i}`).disabled = true;
+  setButtonsVisible(false);
+
+  const factorName = selectedFactor.name;
+  typeText(`${factorName}${josa(factorName, '이', '가')} ${moveName}${josa(moveName, '을', '를')} 사용했다!`);
+
+  setTimeout(() => {
+    if (isCorrect) {
+      score++;
+      shakeSprite('enemy-sprite-area');
+      setActivity(s.goalActivity);
+    } else {
+      shakeSprite('selected-factor');
+    }
+  }, 600);
+
+  showResult(resultText, resultType, effect, isCorrect);
 }
 
 function shakeSprite(id) {
