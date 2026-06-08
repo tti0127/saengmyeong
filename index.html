@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>해당 과정 배틀 ⚗️</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #1a1a2e;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
+  }
+
+  #game-wrap {
+    width: 640px;
+    max-width: 100vw;
+    background: #000;
+    border: 4px solid #333;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 0 40px rgba(0,0,0,0.8);
+  }
+
+  /* ── 배틀 필드 ── */
+  #battle-field {
+    height: 320px;
+    position: relative;
+    overflow: hidden;
+    background:
+      linear-gradient(180deg,
+        #6ab4e8 0%,
+        #a8d8f0 38%,
+        #a8d8f0 38%,
+        #7ec850 38%,
+        #5aaa30 52%,
+        #c8a870 52%,
+        #b89060 100%
+      );
+  }
+
+  /* 경기장 바닥 플랫폼 */
+  .platform {
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(ellipse, rgba(0,0,0,0.25) 0%, transparent 70%);
+  }
+  #enemy-platform {
+    width: 200px; height: 40px;
+    top: 178px; right: 60px;
+  }
+  #player-platform {
+    width: 180px; height: 35px;
+    bottom: 70px; left: 60px;
+  }
+
+  /* 적 (효소) 정보 박스 - 좌상단 */
+  #enemy-hud {
+    position: absolute;
+    top: 16px; left: 16px;
+    background: #f5f0e8;
+    border: 3px solid #333;
+    border-radius: 8px;
+    padding: 8px 14px;
+    min-width: 200px;
+    box-shadow: 3px 3px 0 #333;
+  }
+  #enemy-name {
+    font-size: 13px;
+    font-weight: 900;
+    color: #222;
+    letter-spacing: 0.5px;
+  }
+  #enemy-sub {
+    font-size: 10px;
+    color: #666;
+    margin-bottom: 6px;
+  }
+  .hud-bar-label { font-size: 10px; font-weight: bold; color: #444; }
+  .bar-track {
+    width: 140px; height: 8px;
+    background: #555;
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 3px 0 2px;
+  }
+  .bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.6s ease, background 0.4s;
+  }
+  .bar-fill.high { background: #50c878; }
+  .bar-fill.mid  { background: #f5c518; }
+  .bar-fill.low  { background: #e84040; }
+  .bar-value { font-size: 10px; color: #555; }
+
+  /* 효소 스프라이트 영역 - 우상단 */
+  #enemy-sprite-area {
+    position: absolute;
+    top: 30px; right: 40px;
+    width: 160px; height: 150px;
+    display: flex; align-items: flex-end; justify-content: center;
+  }
+  #enzyme-img {
+    max-width: 150px;
+    max-height: 140px;
+    object-fit: contain;
+    filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.5));
+    image-rendering: auto;
+  }
+  #enzyme-text-fallback {
+    display: none;
+    font-size: 18px;
+    font-weight: 900;
+    color: #fff;
+    text-shadow: 2px 2px 6px #000, 0 0 20px rgba(100,200,255,0.8);
+    text-align: center;
+    line-height: 1.3;
+    background: rgba(0,0,0,0.5);
+    padding: 16px 20px;
+    border-radius: 12px;
+    border: 2px solid rgba(255,255,255,0.3);
+  }
+
+  /* 플레이어 아이콘 (좌하단) */
+  #player-icon {
+    position: absolute;
+    bottom: 72px; left: 70px;
+    width: 80px; height: 80px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  }
+
+  /* 에너지 상태 뱃지 */
+  #energy-badge {
+    position: absolute;
+    bottom: 10px; right: 12px;
+    background: rgba(0,0,0,0.7);
+    color: #fff;
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.3);
+  }
+
+  /* ── 텍스트 박스 ── */
+  #text-box {
+    background: #e8e0d0;
+    border-top: 4px solid #333;
+    padding: 14px 20px;
+    min-height: 80px;
+    position: relative;
+  }
+  #battle-text {
+    font-size: 14px;
+    color: #222;
+    line-height: 1.7;
+    white-space: pre-line;
+  }
+  #text-cursor {
+    display: inline-block;
+    width: 8px; height: 14px;
+    background: #333;
+    margin-left: 2px;
+    animation: blink 0.8s infinite;
+    vertical-align: middle;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  /* ── 액션 메뉴 ── */
+  #action-area {
+    background: #d0c8b8;
+    border-top: 3px solid #555;
+    padding: 12px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .action-btn {
+    background: #f0ece0;
+    border: 2px solid #888;
+    border-radius: 6px;
+    padding: 10px 8px;
+    font-size: 13px;
+    font-weight: bold;
+    color: #333;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: left;
+    line-height: 1.3;
+    box-shadow: 2px 2px 0 #888;
+    min-height: 52px;
+  }
+  .action-btn:hover:not(:disabled) {
+    background: #fff8e8;
+    border-color: #555;
+    transform: translateY(-1px);
+    box-shadow: 3px 3px 0 #555;
+  }
+  .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .action-btn.correct  { background: #90ee90; border-color: #2a8a2a; }
+  .action-btn.wrong    { background: #ffaaaa; border-color: #aa2222; }
+
+  /* ── 결과 오버레이 ── */
+  #result-overlay {
+    display: none;
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    flex-direction: column;
+    gap: 12px;
+  }
+  #result-overlay.show { display: flex; }
+  #result-label {
+    font-size: 36px;
+    font-weight: 900;
+    color: #fff;
+    text-shadow: 0 0 20px currentColor;
+    animation: pop 0.3s ease;
+  }
+  @keyframes pop { from{transform:scale(0.5);opacity:0} to{transform:scale(1);opacity:1} }
+  #result-label.super   { color: #ffe44d; text-shadow: 0 0 30px #ffcc00; }
+  #result-label.miss    { color: #aaa; }
+  #result-label.fail    { color: #ff6060; text-shadow: 0 0 20px #ff0000; }
+  #result-explanation {
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 10px;
+    padding: 14px 20px;
+    max-width: 420px;
+    color: #fff;
+    font-size: 13px;
+    line-height: 1.7;
+    text-align: center;
+  }
+  #next-btn {
+    background: #ffe44d;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 32px;
+    font-size: 15px;
+    font-weight: 900;
+    color: #333;
+    cursor: pointer;
+    margin-top: 4px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  }
+  #next-btn:hover { background: #ffd700; }
+
+  /* ── 상단 바 ── */
+  #top-bar {
+    background: #222;
+    color: #fff;
+    padding: 6px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+  }
+  #round-info { font-weight: bold; color: #ffe44d; }
+  #score-info { color: #aaa; }
+
+  /* ── 시작 화면 ── */
+  #start-screen {
+    padding: 40px 30px;
+    text-align: center;
+    background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+    color: #fff;
+  }
+  #start-screen h1 {
+    font-size: 22px;
+    font-weight: 900;
+    color: #ffe44d;
+    margin-bottom: 8px;
+    text-shadow: 0 0 20px rgba(255,228,77,0.5);
+  }
+  #start-screen h2 { font-size: 15px; color: #a0c4ff; margin-bottom: 24px; }
+  .start-info {
+    background: rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 20px;
+    text-align: left;
+    font-size: 13px;
+    line-height: 1.8;
+    color: #ddd;
+  }
+  .start-info b { color: #ffe44d; }
+  #start-btn {
+    background: #ffe44d;
+    border: none;
+    border-radius: 10px;
+    padding: 14px 48px;
+    font-size: 18px;
+    font-weight: 900;
+    color: #333;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(255,228,77,0.4);
+    transition: transform 0.15s;
+  }
+  #start-btn:hover { transform: scale(1.05); }
+
+  /* ── 엔딩 화면 ── */
+  #end-screen {
+    display: none;
+    padding: 40px 30px;
+    text-align: center;
+    background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+    color: #fff;
+  }
+  #end-screen h1 { font-size: 24px; color: #ffe44d; margin-bottom: 12px; }
+  #final-score {
+    font-size: 48px;
+    font-weight: 900;
+    color: #fff;
+    margin: 16px 0;
+    text-shadow: 0 0 30px rgba(255,255,255,0.3);
+  }
+  #end-comment { font-size: 15px; color: #a0c4ff; margin-bottom: 24px; }
+  #retry-btn {
+    background: #ffe44d;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 40px;
+    font-size: 16px;
+    font-weight: 900;
+    color: #333;
+    cursor: pointer;
+  }
+
+  #battle-screen { display: none; }
+</style>
+</head>
+<body>
+
+<div id="game-wrap">
+
+  <!-- 시작 화면 -->
+  <div id="start-screen">
+    <h1>⚗️ 해당 과정 배틀!</h1>
+    <h2>생명과학 수행평가 — 효소 속도 조절</h2>
+    <div class="start-info">
+      <b>담당 파트:</b> (3) 해당 과정의 속도 조절<br>
+      <b>등장 효소:</b> Hexokinase · PFK-1 · Pyruvate Kinase<br>
+      <b>총 라운드:</b> 8 라운드<br><br>
+      각 상황에서 <b>올바른 조절 인자</b>를 선택하여<br>
+      효소의 활성을 조절하세요!
+    </div>
+    <button id="start-btn" onclick="startGame()">배틀 시작!</button>
+  </div>
+
+  <!-- 배틀 화면 -->
+  <div id="battle-screen">
+    <div id="top-bar">
+      <span id="round-info">Round 1 / 8</span>
+      <span id="score-info">점수: 0</span>
+    </div>
+
+    <div id="battle-field" style="position:relative;">
+      <!-- 바닥 플랫폼 -->
+      <div class="platform" id="enemy-platform"></div>
+      <div class="platform" id="player-platform"></div>
+
+      <!-- 효소 HUD (좌상단) -->
+      <div id="enemy-hud">
+        <div id="enemy-name">PFK-1</div>
+        <div id="enemy-sub">3단계 조절 효소</div>
+        <div class="hud-bar-label">활성도</div>
+        <div class="bar-track">
+          <div class="bar-fill high" id="activity-fill" style="width:80%"></div>
+        </div>
+        <div class="bar-value" id="activity-val">80 / 100</div>
+      </div>
+
+      <!-- 효소 스프라이트 (우측) -->
+      <div id="enemy-sprite-area">
+        <img id="enzyme-img" src="" alt="효소 구조"
+          onerror="this.style.display='none'; document.getElementById('enzyme-text-fallback').style.display='flex'">
+        <div id="enzyme-text-fallback" style="display:none; width:150px; height:140px; align-items:center; justify-content:center;">
+          <span id="enzyme-text-name"></span>
+        </div>
+      </div>
+
+      <!-- 플레이어 아이콘 -->
+      <div id="player-icon">🔬</div>
+
+      <!-- 에너지 상태 -->
+      <div id="energy-badge">⚡ ATP 고농도</div>
+
+      <!-- 결과 오버레이 -->
+      <div id="result-overlay">
+        <div id="result-label">효과적!</div>
+        <div id="result-explanation">설명 텍스트</div>
+        <button id="next-btn" onclick="nextRound()">다음 라운드 ▶</button>
+      </div>
+    </div>
+
+    <!-- 텍스트 박스 -->
+    <div id="text-box">
+      <div id="battle-text">...</div>
+    </div>
+
+    <!-- 액션 메뉴 -->
+    <div id="action-area">
+      <button class="action-btn" id="btn0" onclick="selectAction(0)"></button>
+      <button class="action-btn" id="btn1" onclick="selectAction(1)"></button>
+      <button class="action-btn" id="btn2" onclick="selectAction(2)"></button>
+      <button class="action-btn" id="btn3" onclick="selectAction(3)"></button>
+    </div>
+  </div>
+
+  <!-- 엔딩 화면 -->
+  <div id="end-screen">
+    <h1>🏆 배틀 완료!</h1>
+    <div id="final-score">0 / 8</div>
+    <div id="end-comment"></div>
+    <button id="retry-btn" onclick="retryGame()">다시 하기</button>
+  </div>
+
+</div>
+
+<script>
+// ──────────────────────────────────────────────
+//  시나리오 데이터
+// ──────────────────────────────────────────────
+const scenarios = [
+  {
+    round: 1,
+    enzyme: "Hexokinase I",
+    enzymeSub: "1단계 조절 효소 (뇌·근육·적혈구)",
+    enzymeImg: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Hexokinase_induced_fit.gif/220px-Hexokinase_induced_fit.gif",
+    activityStart: 85,
+    goalActivity: 20,
+    energyBadge: "⚠️ G-6-P 과잉 축적",
+    situation: "뇌 세포에서 포도당 분해가 과도하게 일어나 G-6-P가 과잉 축적되고 있습니다!\nHexokinase I의 활성을 억제해야 합니다.",
+    goal: "inhibit",
+    options: [
+      { text: "G-6-P\n알로스테릭 억제", correct: true,
+        effect: "G-6-P가 알로스테릭 조절 부위에 결합하여 효소 구조가 변형됩니다!\nR→T 전환 → 활성이 크게 감소합니다.",
+        resultType: "super", resultText: "효과적!" },
+      { text: "ATP 결합", correct: false,
+        effect: "ATP는 PFK-1에 작용하는 억제제입니다.\nHexokinase I에는 직접적인 억제 효과가 없습니다.",
+        resultType: "miss", resultText: "효과가 없었다!" },
+      { text: "포도당 추가 공급", correct: false,
+        effect: "포도당 공급 증가는 반응을 오히려 촉진합니다. 역효과!",
+        resultType: "fail", resultText: "역효과!" },
+      { text: "시트르산 결합", correct: false,
+        effect: "시트르산은 PFK-1의 전용 억제제입니다.\nHexokinase에는 효과가 없습니다.",
+        resultType: "miss", resultText: "효과가 없었다!" }
+    ],
+    explanation: "Hexokinase I·II·III은 Km이 매우 낮아 공복에도 최대속도로 작동합니다.\nG-6-P가 축적되면 알로스테릭 억제를 통해 자동으로 속도가 감소합니다 (음성 피드백)."
+  },
+  {
+    round: 2,
+    enzyme: "Glucokinase\n(Hexokinase IV)",
+    enzymeSub: "1단계 조절 효소 (간·췌장 β세포)",
+    enzymeImg: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Hexokinase_induced_fit.gif/220px-Hexokinase_induced_fit.gif",
+    activityStart: 15,
+    goalActivity: 90,
+    energyBadge: "🍚 식후 고혈당 (15mM)",
+    situation: "식후 혈당이 15mM까지 상승했습니다!\n간세포의 Glucokinase를 활성화시켜 포도당을 처리해야 합니다.",
+    goal: "activate",
+    options: [
+      { text: "포도당 농도 증가\n→ GKRP 분리", correct: true,
+        effect: "혈당 상승으로 GKRP(조절 단백질)가 핵에서 Glucokinase를 방출!\n세포질로 나와 포도당과 직접 결합하여 활성화됩니다.",
+        resultType: "super", resultText: "효과적!" },
+      { text: "G-6-P 결합", correct: false,
+        effect: "Glucokinase는 G-6-P에 의해 억제되지 않습니다.\n이것이 Hexokinase I과의 핵심 차이점입니다!",
+        resultType: "miss", resultText: "효과가 없었다!" },
+      { text: "GKRP 핵 내 고정", correct: false,
+        effect: "GKRP가 Glucokinase를 핵 안에 가두면 오히려 비활성화됩니다!",
+        resultType: "fail", resultText: "역효과!" },
+      { text: "ATP 조절부위 결합", correct: false,
+        effect: "Glucokinase는 단량체로 별도의 알로스테릭 조절 부위가 없습니다.\n시간적 협동성으로 포도당 농도에 직접 반응합니다.",
+        resultType: "miss", resultText: "효과가 없었다!" }
+    ],
+    explanation: "Glucokinase(HK IV)는 Km이 높아 평상시 거의 작동하지 않습니다.\n식후 혈당↑ → GKRP에서 분리 → 세포질 이동 → 포도당 농도에 의해 직접 활성화됩니다.\nG-6-P에 의해 억제되지 않는 것이 핵심 차이점!"
+  },
+  {
+    round: 3,
+    enzyme: "PFK-1",
+    enzymeSub: "3단계 조절 효소 (사량체)",
+    enzymeImg: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/PDB_1pfk_EBI.jpg/220px-PDB_1pfk_EBI.jpg",
+    activityStart: 90,
+    goalActivity: 15,
+    energyBadge: "⚡ ATP 고농도 (에너지 충분)",
+    situation: "세포 내 ATP 농도가 급격히 상승했습니다!\n해당 과정을 늦춰야 합니다. PFK-1을 억제하세요.",
+    goal: "inhibit",
+    options: [
+      { text: "ATP\n알로스테릭 조절부위 결합", correct: true,
+        effect: "ATP가 알로스테릭 조절 부위에 결합 → R상태→T상태 전환!\nF-6-P에 대한 친화력이 감소하여 활성이 억제됩니다.",
+        resultType: "super", resultText: "효과적!" },
+      { text: "AMP 결합", correct: false,
+        effect: "AMP는 ATP와 경쟁하여 T→R 전환을 유도합니다.\nATP가 충분한 상황에서는 AMP가 부족합니다.",
+        resultType: "miss", resultText: "효과가 없었다!" },
+      { text: "F-2,6-BP 결합", correct: false,
+        effect: "F-2,6-BP는 PFK-1의 촉진 인자입니다!\n식후 인슐린 신호로 생성되어 해당 과정을 가속합니다.",
+        resultType: "fail", resultText: "역효과!" },
+      { text: "F-6-P 공급 차단", correct: false,
+        effect: "기질 공급 차단은 이 게임의 조절 메커니즘이 아닙니다.\n알로스테릭 조절이 실제 세포 내 조절 방식입니다.",
+        resultType: "miss", resultText: "효과가 없었다!" }
+    ],
+    explanation: "ATP는 PFK-1에서 기질(활성 부위)이자 억제제(조절 부위) 역할을 동시에 합니다.\nATP 고농도 → 조절 부위에 결합 → T상태 전환 → F-6-P 친화력 감소 → 활성 억제"
+  },
+  {
+    round: 4,
+    enzyme: "PFK-1",
+    enzymeSub: "3단계 조절 효소 — TCA 피드백",
+    enzymeImg: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/PDB_1pfk_EBI.jpg/220px-PDB_1pfk_EBI.jpg",
+    activityStart: 75,
+    goalActivity: 20,
+    energyBadge: "🔄 TCA 회로 활발히 진행 중",
+    situation: "미토콘드리아의 TCA 회로가 활발히 돌아가고 있습니다.\n에너지 공급이 충분하니 해당 과정을 억제해야 합니다.\n어떤 TCA 산물이 PFK-1을 억제할까요?",
+    goal: "inhibit",
+    options: [
+      { text: "시트르산\n전용 결합부위 결합", correct: true,
+        effect: "TCA 회로의 첫 번째 산물 시트르산이 PFK-1의 전용 결합 부위에 결합!\nT상태로 전환 → ATP의 조절부위 결합을 촉진 → 강력 억제!",
+        resultType: "super", resultText: "효과적!" },
+      { text: "ADP 결합", correct: false,
+        effect: "ADP는 ATP 고갈 신호입니다. TCA가 활발한 상황에서는 ADP가 부족합니다.\n오히려 PFK-1 촉진 인자입니다.",
+        resultType: "fail", resultText: "역효과!" },
+      { text: "H⁺ 방출", correct: false,
+        effect: "H⁺는 무산소 호흡(젖산 발효) 시 축적되는 억제 신호입니다.\nTCA 회로가 정상 작동 중인 지금은 관련이 없습니다.",
+        resultType: "miss", resultText: "효과가 없었다!" },
+      { text: "F-1,6-BP 공급", correct: false,
+        effect: "F-1,6-BP는 Pyruvate Kinase의 촉진 인자입니다.\nPFK-1에 대한 억제 효과는 없습니다.",
+        resultType: "miss", resultText: "효과가 없었다!" }
+    ],
+    explanation: "시트르산은 TCA 회로의 첫 산물로 '에너지 충분' 신호입니다.\nPFK-1의 별도 전용 결합 부위에 결합하여 T상태를 유도하고, ATP의 조절부위 결합을 더욱 촉진합니다."
+  },
+  {
+    round: 5,
+    enzyme: "PFK-1",
+    enzymeSub: "3단계 조절 효소 — 에너지 위기",
+    enzymeImg: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/PDB_1pfk_EBI.jpg/220px-PDB_1pfk_EBI.jpg",
+    activityStart: 20,
+    goalActivity: 85,
+    energyBadge: "🆘 ATP 고갈 — AMP 급증",
+    situation: "ATP가 고갈되어 AMP가 급격히 축적됩니다!\n세포가 에너지 위기 상태입니다.\nPFK-1을 활성화하여 해당 과정을 가속해야 합니다.",
+    goal: "activate",
+    options: [
+      { text: "AMP/ADP\n알로스테릭 부위 경쟁 결합", correct: true,
+        effect: "AMP·ADP가 알로스테릭 조절 부위에서 ATP와 경쟁하여 결합!\nATP의 억제 효과를 차단 → T→R 전환 → PFK-1 활성화!",
+        resultType: "super", resultText: "효과적!" },
+      { text: "시트르산 결합", correct: false,
+        effect: "시트르산은 TCA가 활발할 때의 억제 신호입니다.\n에너지 위기 상황에서는 시트르산이 부족합니다.",
+        resultType: "miss", resultText: "효과가 없었다!" },
+      { text: "ATP 추가 공급", correct: false,
+        effect: "ATP가 풍부하면 PFK-1이 오히려 억제됩니다.\n에너지 위기 상황과 모순입니다.",
+        resultType: "fail", resultText: "역효과!" },
+      { text: "H⁺ 방출 차단", correct: false,
+        effect: "H⁺ 조절은 무산소 호흡 상황에서의 메커니즘입니다.\n이 상황의 주요 신호는 AMP/ADP 비율입니다.",
+        resultType: "miss", resultText: "효과가 없었다!" }
+    ],
+    explanation: "ATP 고갈 → AMP·ADP 증가 → 알로스테릭 조절 부위에서 ATP와 경쟁 결합\n→ ATP의 억제 효과 차단 → PFK-1 R상태 유지 → 해당 과정 가속!"
+  },
+  {
+    round: 6,
+    enzyme: "PFK-1",
+    enzymeSub: "3단계 조절 효소 — 인슐린 신호",
+    enzymeImg: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/PDB_1pfk_EBI.jpg/220px-PDB_1pfk_EBI.jpg",
+    activityStart: 40,
+    goalActivity: 95,
+    energyBadge: "🍽️ 식후 — 인슐린 분비",
+    situation: "식후 혈당 상승으로 인슐린이 분비되어 RTK 신호 전달이 활성화됩니다.\nPFK-2를 활성화하여 PFK-1을 강력히 촉진해야 합니다.\n어떤 인자가 최종적으로 PFK-1을 R상태로 전환시킬까요?",
+    goal: "activate",
+    options: [
+      { text: "F-2,6-BP\nT→R 전환 촉진", correct: true,
+        effect: "인슐린-RTK → PFK-2 활성화 → F-2,6-BP 생성!\nF-2,6-BP가 T상태 PFK-1을 R상태로 전환 → F-6-P 친화력 대폭 증가!",
+        resultType: "super", resultText: "효과적!" },
+      { text: "ATP 결합", correct: false,
+        effect: "ATP는 PFK-1의 억제제입니다. 식후 해당 과정 촉진에 역행합니다.",
+        resultType: "fail", resultText: "역효과!" },
+      { text: "시트르산 결합", correct: false,
+        effect: "시트르산은 억제 신호입니다. 인슐린 신호와 반대 방향입니다.",
+        resultType: "fail", resultText: "역효과!" },
+      { text: "알라닌 결합", correct: false,
+        effect: "알라닌은 Pyruvate Kinase의 억제제입니다.\nPFK-1에는 효과가 없습니다.",
+        resultType: "miss", resultText: "효과가 없었다!" }
+    ],
+    explanation: "인슐린-RTK → PFK-2 활성화 → F-2,6-BP 생성 → PFK-1 T→R 전환\nF-2,6-BP는 식후 가장 강력한 PFK-1 촉진 신호입니다!"
+  },
+  {
+    round: 7,
+    enzyme: "Pyruvate Kinase",
+    enzymeSub: "10단계 조절 효소 (사량체)",
+    enzymeImg: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Pyruvate_kinase_structure.png/220px-Pyruvate_kinase_structure.png",
+    activityStart: 80,
+    goalActivity: 15,
+    energyBadge: "🧈 지방산 β-산화 활발",
+    situation: "지방산 β-산화가 활발히 진행되어 아세틸-CoA가 대량 생성됩니다.\n에너지 공급이 충분하므로 Pyruvate Kinase를 억제해야 합니다.",
+    goal: "inhibit",
+    options: [
+      { text: "아세틸-CoA\n조절 부위 결합", correct: true,
+        effect: "β-산화 → 아세틸-CoA 생성 → OAA와 결합 → 시트르산 → 세포질로 이동\n→ ATP-시트르산 분해효소로 아세틸-CoA 재생 → PK 조절부위 결합 → 억제!",
+        resultType: "super", resultText: "효과적!" },
+      { text: "F-1,6-BP 공급", correct: false,
+        effect: "F-1,6-BP는 PK의 강력한 촉진 인자입니다 (피드포워드 조절).\n아세틸-CoA가 충분한 상황에서는 역효과입니다.",
+        resultType: "fail", resultText: "역효과!" },
+      { text: "AMP 결합", correct: false,
+        effect: "AMP는 에너지 부족 신호로 PK를 촉진할 수 있습니다.\n지방산 β-산화로 에너지가 충분한 현재 상황과 맞지 않습니다.",
+        resultType: "miss", resultText: "효과가 없었다!" },
+      { text: "인슐린 신호", correct: false,
+        effect: "인슐린-PKB(Akt)는 PP1을 활성화하여 PK를 탈인산화 → 촉진합니다.\n억제가 필요한 지금 상황에는 맞지 않습니다.",
+        resultType: "fail", resultText: "역효과!" }
+    ],
+    explanation: "지방산 β-산화 → 아세틸-CoA 과잉 → 시트르산 경유 세포질로 → 아세틸-CoA 재생\n→ PK 조절 부위 결합 → 억제\n고농도 ATP·아세틸-CoA·알라닌 모두 '에너지 충분' 신호!"
+  },
+  {
+    round: 8,
+    enzyme: "Pyruvate Kinase",
+    enzymeSub: "10단계 조절 효소 — 피드포워드",
+    enzymeImg: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Pyruvate_kinase_structure.png/220px-Pyruvate_kinase_structure.png",
+    activityStart: 25,
+    goalActivity: 90,
+    energyBadge: "⚡ F-1,6-BP 과잉 축적 (병목!)",
+    situation: "F-1,6-BP가 과잉 축적되어 병목 현상이 발생했습니다!\nPyruvate Kinase를 활성화하여 병목을 해결해야 합니다.",
+    goal: "activate",
+    options: [
+      { text: "F-1,6-BP\n조절 부위 결합", correct: true,
+        effect: "F-1,6-BP가 PK 조절 부위에 결합 → T→R 전환 → 활성화!\n10단계에서 3단계 산물이 직접 활성화 → 피드포워드 조절!",
+        resultType: "super", resultText: "효과적!" },
+      { text: "ATP 결합", correct: false,
+        effect: "ATP는 PK의 억제 인자입니다.\nF-1,6-BP 병목 해결에는 역효과입니다.",
+        resultType: "fail", resultText: "역효과!" },
+      { text: "아세틸-CoA 결합", correct: false,
+        effect: "아세틸-CoA는 에너지 충분 신호로 PK를 억제합니다.",
+        resultType: "fail", resultText: "역효과!" },
+      { text: "알라닌 결합", correct: false,
+        effect: "알라닌은 피루브산이 충분하다는 신호로 PK를 억제합니다.",
+        resultType: "fail", resultText: "역효과!" }
+    ],
+    explanation: "F-1,6-BP (3단계 산물) → PK (10단계) 직접 활성화 = 피드포워드 조절!\n앞 단계의 중간 산물이 뒷 단계 효소를 미리 활성화하여 원활한 흐름을 보장합니다."
+  }
+];
+
+// ──────────────────────────────────────────────
+//  게임 상태
+// ──────────────────────────────────────────────
+let currentRound = 0;
+let score = 0;
+let answered = false;
+
+function startGame() {
+  document.getElementById('start-screen').style.display = 'none';
+  document.getElementById('battle-screen').style.display = 'block';
+  currentRound = 0;
+  score = 0;
+  loadRound();
+}
+
+function loadRound() {
+  answered = false;
+  const s = scenarios[currentRound];
+
+  // 상단 바
+  document.getElementById('round-info').textContent = `Round ${s.round} / 8`;
+  document.getElementById('score-info').textContent = `점수: ${score}`;
+
+  // HUD
+  document.getElementById('enemy-name').textContent = s.enzyme;
+  document.getElementById('enemy-sub').textContent = s.enzymeSub;
+  setActivity(s.activityStart);
+
+  // 에너지 뱃지
+  document.getElementById('energy-badge').textContent = s.energyBadge;
+
+  // 효소 이미지
+  const img = document.getElementById('enzyme-img');
+  const fallback = document.getElementById('enzyme-text-fallback');
+  const textName = document.getElementById('enzyme-text-name');
+  img.style.display = 'block';
+  fallback.style.display = 'none';
+  img.src = s.enzymeImg;
+  textName.textContent = s.enzyme;
+
+  // 결과 오버레이 숨김
+  document.getElementById('result-overlay').classList.remove('show');
+
+  // 버튼 초기화
+  const shuffled = shuffleArray([...s.options]);
+  for (let i = 0; i < 4; i++) {
+    const btn = document.getElementById(`btn${i}`);
+    btn.textContent = shuffled[i].text;
+    btn.dataset.idx = s.options.indexOf(shuffled[i]);
+    btn.className = 'action-btn';
+    btn.disabled = false;
+  }
+
+  // 배틀 텍스트
+  typeText(s.situation);
+}
+
+function setActivity(val) {
+  const fill = document.getElementById('activity-fill');
+  document.getElementById('activity-val').textContent = `${val} / 100`;
+  fill.style.width = val + '%';
+  fill.className = 'bar-fill ' + (val >= 60 ? 'high' : val >= 30 ? 'mid' : 'low');
+}
+
+function selectAction(btnIdx) {
+  if (answered) return;
+  answered = true;
+
+  const s = scenarios[currentRound];
+  const btn = document.getElementById(`btn${btnIdx}`);
+  const optionIdx = parseInt(btn.dataset.idx);
+  const chosen = s.options[optionIdx];
+
+  // 버튼 비활성화
+  for (let i = 0; i < 4; i++) {
+    document.getElementById(`btn${i}`).disabled = true;
+  }
+
+  // 정답 표시
+  for (let i = 0; i < 4; i++) {
+    const b = document.getElementById(`btn${i}`);
+    const idx = parseInt(b.dataset.idx);
+    if (s.options[idx].correct) b.classList.add('correct');
+  }
+  if (!chosen.correct) btn.classList.add('wrong');
+
+  // 점수
+  if (chosen.correct) score++;
+
+  // 활성도 변화
+  setTimeout(() => {
+    setActivity(s.goalActivity);
+  }, 300);
+
+  // 결과 오버레이
+  setTimeout(() => {
+    const overlay = document.getElementById('result-overlay');
+    const label = document.getElementById('result-label');
+    const expDiv = document.getElementById('result-explanation');
+
+    label.textContent = chosen.resultText;
+    label.className = '';
+    label.classList.add(chosen.resultType);
+    expDiv.textContent = chosen.effect + '\n\n📚 ' + s.explanation;
+
+    // 마지막 라운드면 버튼 텍스트 변경
+    const nextBtn = document.getElementById('next-btn');
+    nextBtn.textContent = currentRound === scenarios.length - 1 ? '결과 보기 🏆' : '다음 라운드 ▶';
+
+    overlay.classList.add('show');
+    document.getElementById('score-info').textContent = `점수: ${score}`;
+  }, 600);
+}
+
+function nextRound() {
+  currentRound++;
+  if (currentRound >= scenarios.length) {
+    showEnding();
+  } else {
+    loadRound();
+  }
+}
+
+function showEnding() {
+  document.getElementById('battle-screen').style.display = 'none';
+  const end = document.getElementById('end-screen');
+  end.style.display = 'block';
+  document.getElementById('final-score').textContent = `${score} / ${scenarios.length}`;
+
+  let comment = '';
+  if (score === 8) comment = '🏆 완벽합니다! 효소 조절 마스터!';
+  else if (score >= 6) comment = '🥈 훌륭해요! 핵심 개념을 잘 이해하고 있습니다.';
+  else if (score >= 4) comment = '🥉 절반 이상 맞았어요. 조금 더 복습해봐요!';
+  else comment = '💪 다시 도전해봐요! 핵심 조절 인자를 암기해보세요.';
+
+  document.getElementById('end-comment').textContent = comment;
+}
+
+function retryGame() {
+  document.getElementById('end-screen').style.display = 'none';
+  currentRound = 0;
+  score = 0;
+  document.getElementById('battle-screen').style.display = 'block';
+  loadRound();
+}
+
+// 타이핑 효과
+let typeTimer = null;
+function typeText(text) {
+  const el = document.getElementById('battle-text');
+  if (typeTimer) clearInterval(typeTimer);
+  el.innerHTML = '';
+  let i = 0;
+  const cursor = '<span id="text-cursor"></span>';
+  typeTimer = setInterval(() => {
+    if (i < text.length) {
+      el.innerHTML = text.slice(0, i + 1).replace(/\n/g, '<br>') + cursor;
+      i++;
+    } else {
+      el.innerHTML = text.replace(/\n/g, '<br>');
+      clearInterval(typeTimer);
+    }
+  }, 30);
+}
+
+// 배열 셔플
+function shuffleArray(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+</script>
+</body>
+</html>
