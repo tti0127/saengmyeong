@@ -27,173 +27,185 @@
     box-shadow: 0 0 40px rgba(0,0,0,0.8);
   }
 
-  /* ── 배틀 필드 ── */
+  /* ── 배틀 필드: 어두운 숲 배경 ── */
   #battle-field {
-    height: 330px;
+    height: 310px;
     position: relative;
     overflow: hidden;
-    /* 원근감 있는 배경: 하늘 → 지평선 → 원거리 잔디 → 근거리 잔디 → 흙 */
     background:
       linear-gradient(180deg,
-        #5ba8d8 0%,
-        #8ecfef 30%,
-        #8ecfef 30%,
-        #a8d870 30%,
-        #7ab840 44%,
-        #5a9828 44%,
-        #6aaa38 54%,
-        #c0a060 54%,
-        #a88848 100%
+        #1c2e48 0%,
+        #243850 20%,
+        #1a3a1a 20%,
+        #1e4a1e 38%,
+        #2a6030 38%,
+        #3a7838 52%,
+        #4a6820 52%,
+        #3a5018 100%
       );
   }
 
-  /* 원근감 플랫폼: 적=위쪽 작게, 플레이어=아래쪽 크게 */
+  /* 숲 실루엣 */
+  #battle-field::before {
+    content: '';
+    position: absolute;
+    top: 18%;
+    left: 0; right: 0;
+    height: 22%;
+    background:
+      radial-gradient(ellipse 60px 55px at 8% 100%, #0d250d 99%, transparent 100%),
+      radial-gradient(ellipse 50px 60px at 15% 100%, #0a1f0a 99%, transparent 100%),
+      radial-gradient(ellipse 70px 50px at 23% 100%, #0d280d 99%, transparent 100%),
+      radial-gradient(ellipse 45px 55px at 30% 100%, #0a200a 99%, transparent 100%),
+      radial-gradient(ellipse 55px 45px at 38% 100%, #0c250c 99%, transparent 100%),
+      radial-gradient(ellipse 65px 60px at 80% 100%, #0a1f0a 99%, transparent 100%),
+      radial-gradient(ellipse 50px 55px at 88% 100%, #0d250d 99%, transparent 100%),
+      radial-gradient(ellipse 60px 50px at 96% 100%, #0a220a 99%, transparent 100%);
+    pointer-events: none;
+  }
+
+  /* 플랫폼 타원 그림자 */
   .platform {
     position: absolute;
     border-radius: 50%;
-    background: radial-gradient(ellipse, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.05) 60%, transparent 100%);
+    background: radial-gradient(ellipse, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.06) 50%, transparent 100%);
   }
-  /* 적 플랫폼: 우측 상단, 작고 좁게 (멀리 있는 느낌) */
+  /* 적 플랫폼: 우측, 위쪽 (멀리) */
   #enemy-platform {
-    width: 140px; height: 22px;
-    top: 168px; right: 80px;
+    width: 120px; height: 18px;
+    top: 172px; right: 90px;
   }
-  /* 플레이어 플랫폼: 좌측 하단, 크고 넓게 (가까이 있는 느낌) */
+  /* 플레이어 플랫폼: 좌측, 아래쪽 (가까이) */
   #player-platform {
-    width: 210px; height: 42px;
-    bottom: 48px; left: 50px;
+    width: 200px; height: 36px;
+    bottom: 36px; left: 44px;
   }
 
-  /* ── 적 HUD: 좌상단 (포켓몬 스타일) ── */
-  #enemy-hud {
+  /* ── 플레이어 HUD: 좌상단 ── */
+  #player-hud {
     position: absolute;
-    top: 14px; left: 14px;
-    background: #f5f0e8;
-    border: 3px solid #333;
+    top: 12px; left: 0;
+    background: #f0ede0;
+    border: 2px solid #222;
+    border-left: none;
     border-radius: 0 10px 10px 0;
-    padding: 8px 14px 8px 12px;
-    min-width: 210px;
-    box-shadow: 4px 4px 0 #333;
+    padding: 7px 14px 7px 12px;
+    min-width: 190px;
+    box-shadow: 3px 3px 0 #222;
+    z-index: 2;
   }
-  #enemy-name {
-    font-size: 13px;
-    font-weight: 900;
-    color: #222;
-    letter-spacing: 0.5px;
+  #player-name-row {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-bottom: 3px;
   }
-  #enemy-sub {
-    font-size: 10px;
-    color: #666;
-    margin-bottom: 6px;
-  }
-  .hud-bar-label { font-size: 10px; font-weight: bold; color: #444; }
+  #player-label { font-size: 12px; font-weight: 900; color: #222; }
+  #player-lv    { font-size: 10px; color: #555; }
+  .hud-bar-label { font-size: 9px; font-weight: bold; color: #444; }
   .bar-track {
-    width: 150px; height: 8px;
-    background: #555;
-    border-radius: 4px;
+    width: 130px; height: 6px;
+    background: #888;
+    border-radius: 3px;
     overflow: hidden;
-    margin: 3px 0 2px;
+    margin: 2px 0 2px;
+    display: inline-block;
   }
   .bar-fill {
     height: 100%;
-    border-radius: 4px;
+    border-radius: 3px;
     transition: width 0.6s ease, background 0.4s;
   }
-  .bar-fill.high { background: #50c878; }
-  .bar-fill.mid  { background: #f5c518; }
-  .bar-fill.low  { background: #e84040; }
-  .bar-value { font-size: 10px; color: #555; }
+  .bar-fill.high { background: #50c040; }
+  .bar-fill.mid  { background: #e8c010; }
+  .bar-fill.low  { background: #e04040; }
+
+  /* ── 적(효소) HUD: 우상단 ── */
+  #enemy-hud {
+    position: absolute;
+    top: 12px; right: 0;
+    background: #f0ede0;
+    border: 2px solid #222;
+    border-right: none;
+    border-radius: 10px 0 0 10px;
+    padding: 7px 12px 7px 14px;
+    min-width: 200px;
+    box-shadow: -3px 3px 0 #222;
+    z-index: 2;
+    text-align: right;
+  }
+  #enemy-name-row {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-bottom: 3px;
+  }
+  #enemy-name { font-size: 12px; font-weight: 900; color: #222; }
+  #enemy-lv   { font-size: 10px; color: #555; }
+  #enemy-sub  { font-size: 9px; color: #777; margin-bottom: 3px; text-align: right; }
+  .bar-row { display: flex; align-items: center; justify-content: flex-end; gap: 4px; }
+  #activity-val { font-size: 9px; color: #555; white-space: nowrap; }
 
   /* ── 적 스프라이트: 우측 상단 (멀리, 작게) ── */
   #enemy-sprite-area {
     position: absolute;
-    top: 18px; right: 30px;
-    width: 130px; height: 148px;
+    top: 60px; right: 80px;
+    width: 120px; height: 120px;
     display: flex; align-items: flex-end; justify-content: center;
   }
   #enzyme-img {
-    max-width: 120px;
-    max-height: 130px;
+    max-width: 115px;
+    max-height: 115px;
     object-fit: contain;
-    filter: drop-shadow(1px 3px 5px rgba(0,0,0,0.5));
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.6));
   }
   #enzyme-text-fallback {
     display: none;
-    font-size: 15px;
+    width: 115px; height: 115px;
+    align-items: center; justify-content: center;
+    font-size: 13px;
     font-weight: 900;
     color: #fff;
-    text-shadow: 2px 2px 6px #000, 0 0 16px rgba(100,200,255,0.9);
+    text-shadow: 1px 1px 4px #000;
     text-align: center;
     line-height: 1.3;
-    background: rgba(0,0,0,0.55);
-    padding: 12px 14px;
-    border-radius: 10px;
-    border: 2px solid rgba(255,255,255,0.3);
-    width: 120px;
+    background: rgba(30,60,100,0.7);
+    border-radius: 12px;
+    border: 2px solid rgba(150,200,255,0.4);
+    padding: 10px;
   }
 
   /* ── 플레이어 스프라이트: 좌측 하단 (가까이, 크게, 뒷모습) ── */
   #player-icon {
     position: absolute;
-    bottom: 50px; left: 55px;
-    width: 110px; height: 110px;
-    background: linear-gradient(145deg, #667eea, #764ba2);
-    border-radius: 50%;
+    bottom: 38px; left: 48px;
+    width: 120px; height: 120px;
     display: flex; align-items: center; justify-content: center;
-    font-size: 46px;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.5);
-    /* 뒷모습 느낌: 약간 어둡게 처리 */
-    filter: brightness(0.85);
+    font-size: 52px;
+    filter: brightness(0.7) drop-shadow(0 6px 12px rgba(0,0,0,0.7));
   }
 
-  /* ── 플레이어 HUD: 우하단 (포켓몬 스타일) ── */
-  #player-hud {
-    position: absolute;
-    bottom: 14px; right: 14px;
-    background: #f5f0e8;
-    border: 3px solid #333;
-    border-radius: 10px 0 0 10px;
-    padding: 7px 12px;
-    min-width: 160px;
-    box-shadow: -3px 3px 0 #333;
-    text-align: right;
-  }
-  #player-label {
-    font-size: 12px;
-    font-weight: 900;
-    color: #444;
-    margin-bottom: 4px;
+  /* ── 하단 전체 영역: 텍스트 + 버튼 가로 배치 ── */
+  #bottom-section {
+    display: flex;
+    border-top: 3px solid #222;
+    height: 110px;
   }
 
-  /* 에너지 상태 뱃지 */
-  #energy-badge {
-    position: absolute;
-    top: 14px; right: 14px;
-    background: rgba(0,0,0,0.72);
-    color: #fff;
-    font-size: 11px;
-    padding: 4px 10px;
-    border-radius: 20px;
-    border: 1px solid rgba(255,255,255,0.3);
-  }
-
-  /* ── 텍스트 박스 ── */
+  /* 텍스트 박스: 좌측 */
   #text-box {
-    background: #e8e0d0;
-    border-top: 4px solid #333;
-    padding: 14px 20px;
-    min-height: 80px;
-    position: relative;
+    flex: 1;
+    background: #e8e0cc;
+    padding: 12px 16px;
+    display: flex;
+    align-items: flex-start;
+    border-right: 2px solid #555;
   }
   #battle-text {
-    font-size: 14px;
-    color: #222;
+    font-size: 13px;
+    color: #111;
     line-height: 1.7;
     white-space: pre-line;
   }
   #text-cursor {
     display: inline-block;
-    width: 8px; height: 14px;
+    width: 7px; height: 13px;
     background: #333;
     margin-left: 2px;
     animation: blink 0.8s infinite;
@@ -201,39 +213,41 @@
   }
   @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
 
-  /* ── 액션 메뉴 ── */
+  /* 액션 버튼 영역: 우측 2x2 */
   #action-area {
-    background: #d0c8b8;
-    border-top: 3px solid #555;
-    padding: 12px;
+    width: 220px;
+    background: #c8c0a8;
+    padding: 8px;
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 8px;
+    grid-template-rows: 1fr 1fr;
+    gap: 6px;
+    flex-shrink: 0;
   }
   .action-btn {
     background: #f0ece0;
-    border: 2px solid #888;
-    border-radius: 6px;
-    padding: 10px 8px;
-    font-size: 13px;
+    border: 2px solid #666;
+    border-radius: 5px;
+    padding: 4px 6px;
+    font-size: 11px;
     font-weight: bold;
-    color: #333;
+    color: #222;
     cursor: pointer;
-    transition: all 0.15s;
-    text-align: left;
+    transition: all 0.12s;
+    text-align: center;
     line-height: 1.3;
-    box-shadow: 2px 2px 0 #888;
-    min-height: 52px;
+    box-shadow: 2px 2px 0 #666;
+    white-space: pre-line;
   }
   .action-btn:hover:not(:disabled) {
-    background: #fff8e8;
-    border-color: #555;
+    background: #fffae8;
+    border-color: #333;
     transform: translateY(-1px);
-    box-shadow: 3px 3px 0 #555;
+    box-shadow: 3px 3px 0 #333;
   }
   .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-  .action-btn.correct  { background: #90ee90; border-color: #2a8a2a; }
-  .action-btn.wrong    { background: #ffaaaa; border-color: #aa2222; }
+  .action-btn.correct  { background: #90ee90; border-color: #1a7a1a; }
+  .action-btn.wrong    { background: #ffaaaa; border-color: #aa1a1a; }
 
   /* ── 결과 오버레이 ── */
   #result-overlay {
@@ -393,30 +407,44 @@
       <span id="score-info">점수: 0</span>
     </div>
 
-    <div id="battle-field" style="position:relative;">
-      <!-- 바닥 플랫폼 -->
+    <div id="battle-field">
+      <!-- 플랫폼 -->
       <div class="platform" id="enemy-platform"></div>
       <div class="platform" id="player-platform"></div>
 
-      <!-- 효소 HUD: 좌상단 (적 정보) -->
-      <div id="enemy-hud">
-        <div id="enemy-name">PFK-1</div>
-        <div id="enemy-sub">3단계 조절 효소</div>
-        <div class="hud-bar-label">활성도</div>
-        <div class="bar-track">
-          <div class="bar-fill high" id="activity-fill" style="width:80%"></div>
+      <!-- 플레이어 HUD: 좌상단 -->
+      <div id="player-hud">
+        <div id="player-name-row">
+          <span id="player-label">🧪 세포 연구자</span>
+          <span id="player-lv">Lv.1</span>
         </div>
-        <div class="bar-value" id="activity-val">80 / 100</div>
+        <div class="hud-bar-label">HP</div>
+        <div class="bar-track" style="width:130px;">
+          <div class="bar-fill high" style="width:100%"></div>
+        </div>
       </div>
 
-      <!-- 에너지 상태 뱃지: 우상단 -->
-      <div id="energy-badge">⚡ ATP 고농도</div>
+      <!-- 적(효소) HUD: 우상단 -->
+      <div id="enemy-hud">
+        <div id="enemy-name-row">
+          <span id="enemy-name">PFK-1</span>
+          <span id="enemy-lv">Lv.★</span>
+        </div>
+        <div id="enemy-sub">3단계 조절 효소</div>
+        <div class="bar-row">
+          <span class="hud-bar-label">활성도</span>
+          <div class="bar-track" style="width:110px;">
+            <div class="bar-fill high" id="activity-fill" style="width:80%"></div>
+          </div>
+          <span id="activity-val">80%</span>
+        </div>
+      </div>
 
       <!-- 적 스프라이트: 우측 상단 (멀리, 작게) -->
       <div id="enemy-sprite-area">
-        <img id="enzyme-img" src="" alt="효소 구조"
+        <img id="enzyme-img" src="" alt="효소"
           onerror="this.style.display='none'; document.getElementById('enzyme-text-fallback').style.display='flex'">
-        <div id="enzyme-text-fallback" style="display:none; align-items:center; justify-content:center;">
+        <div id="enzyme-text-fallback" style="display:none;">
           <span id="enzyme-text-name"></span>
         </div>
       </div>
@@ -424,30 +452,25 @@
       <!-- 플레이어 스프라이트: 좌측 하단 (가까이, 크게, 뒷모습) -->
       <div id="player-icon">🔬</div>
 
-      <!-- 플레이어 HUD: 우하단 -->
-      <div id="player-hud">
-        <div id="player-label">🧪 세포 연구자</div>
-      </div>
-
       <!-- 결과 오버레이 -->
       <div id="result-overlay">
         <div id="result-label">효과적!</div>
-        <div id="result-explanation">설명 텍스트</div>
+        <div id="result-explanation"></div>
         <button id="next-btn" onclick="nextRound()">다음 라운드 ▶</button>
       </div>
     </div>
 
-    <!-- 텍스트 박스 -->
-    <div id="text-box">
-      <div id="battle-text">...</div>
-    </div>
-
-    <!-- 액션 메뉴 -->
-    <div id="action-area">
-      <button class="action-btn" id="btn0" onclick="selectAction(0)"></button>
-      <button class="action-btn" id="btn1" onclick="selectAction(1)"></button>
-      <button class="action-btn" id="btn2" onclick="selectAction(2)"></button>
-      <button class="action-btn" id="btn3" onclick="selectAction(3)"></button>
+    <!-- 하단: 텍스트(좌) + 버튼(우) -->
+    <div id="bottom-section">
+      <div id="text-box">
+        <div id="battle-text">...</div>
+      </div>
+      <div id="action-area">
+        <button class="action-btn" id="btn0" onclick="selectAction(0)"></button>
+        <button class="action-btn" id="btn1" onclick="selectAction(1)"></button>
+        <button class="action-btn" id="btn2" onclick="selectAction(2)"></button>
+        <button class="action-btn" id="btn3" onclick="selectAction(3)"></button>
+      </div>
     </div>
   </div>
 
@@ -735,7 +758,7 @@ function loadRound() {
 
 function setActivity(val) {
   const fill = document.getElementById('activity-fill');
-  document.getElementById('activity-val').textContent = `${val} / 100`;
+  document.getElementById('activity-val').textContent = `${val}%`;
   fill.style.width = val + '%';
   fill.className = 'bar-fill ' + (val >= 60 ? 'high' : val >= 30 ? 'mid' : 'low');
 }
