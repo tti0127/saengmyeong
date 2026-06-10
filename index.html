@@ -56,18 +56,14 @@
   /* ─── 적 HUD: 이미지 좌상단 박스 ─── */
   #enemy-hud {
     position: absolute;
-    left: 2%; top: 14%;
-    width: 42%;
+    left: 3%; top: 4%;
+    width: 44%;
     background: transparent;
-    padding: 1% 2%;
+    padding: 0.5% 1.5%;
     color: #eee;
     z-index: 2;
   }
-  #enemy-trainer { font-size: clamp(6px, 0.9vw, 8px); color: #bbb; margin-bottom: 1%; }
-  #enemy-name-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.5%; }
-  #enemy-name { font-size: clamp(8px, 1.3vw, 11px); font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80%; }
-  #enemy-lv   { font-size: clamp(7px, 1vw, 9px); color: #bbb; }
-  #enemy-sub  { font-size: clamp(6px, 0.9vw, 8px); color: #ccc; margin-bottom: 1%; }
+  #enemy-name { font-size: clamp(8px, 1.4vw, 11px); font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 1.5%; }
   .bar-row { display: flex; align-items: center; gap: 3%; }
   .hud-bar-label { font-size: clamp(6px, 1vw, 8px); font-weight: bold; color: #eee; white-space: nowrap; }
   .bar-track { flex: 1; height: 5px; background: #555; border-radius: 2px; overflow: hidden; }
@@ -121,17 +117,15 @@
   /* ─── 플레이어 HUD: 이미지 우측 하단 박스 ─── */
   #player-hud {
     position: absolute;
-    left: 55%; top: 48%;
-    width: 44%;
+    left: 56%; top: 55%;
+    width: 41%;
     background: transparent;
-    padding: 1% 2%;
+    padding: 0.5% 1.5%;
     color: #eee;
     z-index: 2;
   }
-  #player-name-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1%; }
+  #player-name-row { margin-bottom: 1.5%; }
   #player-label { font-size: clamp(7px, 1.2vw, 10px); font-weight: 900; }
-  #player-lv    { font-size: clamp(6px, 1vw, 8px); color: #bbb; }
-  #energy-badge { font-size: clamp(6px, 0.9vw, 8px); color: #ffcc44; margin-bottom: 1%; }
 
   /* ─── 텍스트 박스: 하단 좌 ─── */
   #text-box {
@@ -392,14 +386,9 @@
 
       <!-- 적(효소) HUD: 이미지 좌상단 박스 -->
       <div id="enemy-hud">
-        <div id="enemy-trainer">⚗️ 생명과학</div>
-        <div id="enemy-name-row">
-          <span id="enemy-name">PFK-1</span>
-          <span id="enemy-lv">Lv.★</span>
-        </div>
-        <div id="enemy-sub">3단계 조절 효소</div>
+        <div id="enemy-name">PFK-1</div>
         <div class="bar-row">
-          <span class="hud-bar-label">활성도</span>
+          <span class="hud-bar-label">HP</span>
           <div class="bar-track">
             <div class="bar-fill high" id="activity-fill" style="width:80%"></div>
           </div>
@@ -427,9 +416,7 @@
       <div id="player-hud">
         <div id="player-name-row">
           <span id="player-label">🔬 연구자</span>
-          <span id="player-lv">Lv.1</span>
         </div>
-        <div id="energy-badge"></div>
         <div class="bar-row">
           <span class="hud-bar-label">HP</span>
           <div class="bar-track"><div class="bar-fill high" style="width:100%"></div></div>
@@ -737,7 +724,6 @@ function loadRound() {
 
   // HUD
   document.getElementById('enemy-name').textContent = s.enzyme;
-  document.getElementById('enemy-sub').textContent = s.enzymeSub;
   setActivity(s.activityStart);
 
   // 효소 이미지
@@ -763,9 +749,6 @@ function loadRound() {
 
   // 버튼 숨김 (인트로 동안)
   setButtonsVisible(false);
-
-  // 에너지 뱃지
-  document.getElementById('energy-badge').textContent = s.energyBadge;
 
   // ── 인트로 시퀀스 ──
   const spriteArea = document.getElementById('enemy-sprite-area');
