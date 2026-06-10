@@ -411,7 +411,7 @@
       <div id="player-label">🔬 연구자</div>
       <!-- 플레이어 HP바 -->
       <div id="player-hp-row" class="bar-row">
-        <div class="bar-track"><div class="bar-fill high" style="width:100%"></div></div>
+        <div class="bar-track"><div class="bar-fill high" id="player-hp-fill" style="width:100%"></div></div>
       </div>
 
       <!-- 텍스트 박스: 이미지 하단 좌 검은 박스 -->
@@ -466,7 +466,7 @@
 const scenarios = [
   {
     round: 1, enzyme: "Hexokinase I", enzymeSub: "1단계 조절 효소 (뇌·근육·적혈구)",
-    enzymeImg: "images/enemy.jpg", activityStart: 85, goalActivity: 20,
+    enzymeImg: "images/hexokinase_new.jpg", activityStart: 85, goalActivity: 20,
     energyBadge: "⚠️ G-6-P 과잉 축적",
     situation: "뇌 세포에서 G-6-P가 과잉 축적되고 있습니다!\n어떤 조절 인자를 선택하겠습니까?",
     factors: [
@@ -494,7 +494,7 @@ const scenarios = [
   },
   {
     round: 2, enzyme: "Glucokinase", enzymeSub: "1단계 조절 효소 (간·췌장 β세포)",
-    enzymeImg: "images/enemy.jpg", activityStart: 15, goalActivity: 90,
+    enzymeImg: "images/GKRP.jpg", activityStart: 15, goalActivity: 90,
     energyBadge: "🍚 식후 고혈당 (15mM)",
     situation: "식후 혈당이 15mM까지 상승했습니다!\n간세포의 Glucokinase를 활성화할 인자를 선택하세요.",
     factors: [
@@ -522,7 +522,7 @@ const scenarios = [
   },
   {
     round: 3, enzyme: "PFK-1", enzymeSub: "3단계 조절 효소 (사량체)",
-    enzymeImg: "images/enemy.jpg", activityStart: 90, goalActivity: 15,
+    enzymeImg: "images/pfk1_new.jpg", activityStart: 90, goalActivity: 15,
     energyBadge: "⚡ ATP 고농도 (에너지 충분)",
     situation: "ATP 농도가 급격히 상승했습니다!\nPFK-1을 억제할 조절 인자를 선택하세요.",
     factors: [
@@ -550,7 +550,7 @@ const scenarios = [
   },
   {
     round: 4, enzyme: "PFK-1", enzymeSub: "3단계 조절 효소 — TCA 피드백",
-    enzymeImg: "images/enemy.jpg", activityStart: 75, goalActivity: 20,
+    enzymeImg: "images/pfk1_new.jpg", activityStart: 75, goalActivity: 20,
     energyBadge: "🔄 TCA 회로 활발 진행",
     situation: "TCA 회로가 활발히 진행 중입니다.\nTCA 산물로 PFK-1을 억제할 인자를 선택하세요.",
     factors: [
@@ -578,7 +578,7 @@ const scenarios = [
   },
   {
     round: 5, enzyme: "PFK-1", enzymeSub: "3단계 조절 효소 — 에너지 위기",
-    enzymeImg: "images/enemy.jpg", activityStart: 20, goalActivity: 85,
+    enzymeImg: "images/pfk1_new.jpg", activityStart: 20, goalActivity: 85,
     energyBadge: "🆘 ATP 고갈 — AMP 급증",
     situation: "ATP가 고갈되어 AMP가 급증합니다!\nPFK-1을 활성화할 인자를 선택하세요.",
     factors: [
@@ -606,7 +606,7 @@ const scenarios = [
   },
   {
     round: 6, enzyme: "PFK-1", enzymeSub: "3단계 조절 효소 — 식후 인슐린",
-    enzymeImg: "images/enemy.jpg", activityStart: 40, goalActivity: 95,
+    enzymeImg: "images/pfk1_new.jpg", activityStart: 40, goalActivity: 95,
     energyBadge: "🍽️ 식후 — 인슐린 분비",
     situation: "인슐린 신호로 PFK-2가 활성화됩니다!\nPFK-1을 촉진할 최종 인자를 선택하세요.",
     factors: [
@@ -634,7 +634,7 @@ const scenarios = [
   },
   {
     round: 7, enzyme: "Pyruvate Kinase", enzymeSub: "10단계 조절 효소 (사량체)",
-    enzymeImg: "images/enemy.jpg", activityStart: 80, goalActivity: 15,
+    enzymeImg: "images/pk_new.jpg", activityStart: 80, goalActivity: 15,
     energyBadge: "🧈 지방산 β-산화 활발",
     situation: "지방산 β-산화로 아세틸-CoA가 대량 생성됩니다!\nPyruvate Kinase를 억제할 인자를 선택하세요.",
     factors: [
@@ -662,7 +662,7 @@ const scenarios = [
   },
   {
     round: 8, enzyme: "Pyruvate Kinase", enzymeSub: "10단계 조절 효소 — 피드포워드",
-    enzymeImg: "images/enemy.jpg", activityStart: 25, goalActivity: 90,
+    enzymeImg: "images/pk_new.jpg", activityStart: 25, goalActivity: 90,
     energyBadge: "⚡ F-1,6-BP 과잉 (병목!)",
     situation: "F-1,6-BP가 과잉 축적되어 병목이 생겼습니다!\nPyruvate Kinase를 활성화할 인자를 선택하세요.",
     factors: [
@@ -695,13 +695,24 @@ const scenarios = [
 // ─────────────────────────────
 let currentRound = 0;
 let score = 0;
-let selectedFactor = null; // 1단계에서 선택한 인자
+let playerHP = 3;
+let selectedFactor = null;
+
+function updatePlayerHP() {
+  const fill = document.getElementById('player-hp-fill');
+  if (!fill) return;
+  const pct = Math.max(0, playerHP / 3 * 100);
+  fill.style.width = pct + '%';
+  fill.className = 'bar-fill ' + (playerHP >= 3 ? 'high' : playerHP >= 2 ? 'mid' : 'low');
+}
 
 function startGame() {
   document.getElementById('start-screen').style.display = 'none';
   document.getElementById('battle-screen').style.display = 'block';
   currentRound = 0;
   score = 0;
+  playerHP = 3;
+  updatePlayerHP();
   loadRound();
 }
 
@@ -774,11 +785,20 @@ function loadRound() {
 // 파티 카드 렌더링 (1단계: 인자 선택)
 const themes = ['theme-red', 'theme-blue', 'theme-green', 'theme-gold'];
 const factorImgMap = {
-  'G-6-P':       'images/G-6P.png',
-  'ATP':         'images/atp.png',
-  '포도당':      'images/포도당.png',
+  'G-6-P':         'images/G-6P.png',
+  'ATP':           'images/atp.png',
+  '포도당':        'images/포도당.png',
   '포도당(혈당↑)': 'images/포도당.png',
-  '시트르산':    'images/시트르산.png',
+  '시트르산':      'images/시트르산.png',
+  'AMP':           'images/AMP.png',
+  'ADP':           'images/ADP.png',
+  'AMP / ADP':     'images/AMP.png',
+  'GKRP':          'images/GKRP.jpg',
+  'F-2,6-BP':      'images/F-2-6-BP.png',
+  'H⁺':            'images/H+.png',
+  '아세틸-CoA':    'images/아세틸-CoA.png',
+  '알라닌':        'images/알라닌.png',
+  '인슐린':        'images/인슐린.jpg',
 };
 function renderPartyCards(s) {
   const shuffled = shuffleArray([...s.factors]);
@@ -837,7 +857,7 @@ function showResult(resultText, resultType, effectText, isCorrect) {
     label.textContent = resultText;
     label.className = resultType;
     document.getElementById('result-explanation').textContent = effectText + '\n\n📚 ' + s.explanation;
-    document.getElementById('next-btn').textContent = currentRound === scenarios.length - 1 ? '결과 보기 🏆' : '다음 라운드 ▶';
+    document.getElementById('next-btn').textContent = playerHP <= 0 ? '게임 오버 💀' : currentRound === scenarios.length - 1 ? '결과 보기 🏆' : '다음 라운드 ▶';
     overlay.classList.add('show');
     document.getElementById('score-info').textContent = `점수: ${score}`;
   }, 1400);
@@ -886,6 +906,11 @@ function selectMove(btnIdx) {
   typeText(`${factorName}${josa(factorName, '이', '가')} ${moveName}${josa(moveName, '을', '를')} 사용했다!`);
 
   const success = factorCorrect && moveCorrect;
+  if (!success) {
+    playerHP = Math.max(0, playerHP - 1);
+    updatePlayerHP();
+  }
+
   setTimeout(() => {
     if (success) {
       score++;
@@ -910,12 +935,24 @@ function shakeSprite(id) {
 }
 
 function nextRound() {
+  if (playerHP <= 0) {
+    showGameOver();
+    return;
+  }
   currentRound++;
   if (currentRound >= scenarios.length) {
     showEnding();
   } else {
     loadRound();
   }
+}
+
+function showGameOver() {
+  document.getElementById('battle-screen').style.display = 'none';
+  const end = document.getElementById('end-screen');
+  end.style.display = 'block';
+  document.getElementById('final-score').textContent = `${score} / ${scenarios.length}`;
+  document.getElementById('end-comment').textContent = '💀 HP가 모두 소진되었습니다! 다시 도전해보세요!';
 }
 
 function showEnding() {
@@ -937,6 +974,8 @@ function retryGame() {
   document.getElementById('end-screen').style.display = 'none';
   currentRound = 0;
   score = 0;
+  playerHP = 3;
+  updatePlayerHP();
   document.getElementById('battle-screen').style.display = 'block';
   loadRound();
 }
