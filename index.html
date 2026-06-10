@@ -62,13 +62,6 @@
     color: #eee; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     z-index: 2;
   }
-  /* ─── 적 HP바: 박스 하단부 (y≈19%) ─── */
-  #enemy-hp-row {
-    position: absolute;
-    top: 19%; left: 4%;
-    width: 36%;
-    z-index: 2;
-  }
   .bar-row { display: flex; align-items: center; gap: 3%; }
   .hud-bar-label { font-size: clamp(6px, 1vw, 8px); font-weight: bold; color: #eee; white-space: nowrap; }
   .bar-track { flex: 1; height: 5px; background: transparent; border-radius: 2px; overflow: hidden; }
@@ -112,7 +105,8 @@
     align-items: center; justify-content: center;
     flex-direction: column; gap: 4%;
   }
-  #selected-factor-icon { font-size: clamp(18px, 3.5vw, 38px); }
+  #selected-factor-icon { font-size: clamp(18px, 3.5vw, 38px); width: 100%; display: flex; align-items: center; justify-content: center; }
+  #selected-factor-icon img { width: 90%; height: auto; object-fit: contain; background: #fff; border-radius: 4px; }
   #selected-factor-name {
     font-size: clamp(6px, 1vw, 8px); font-weight: 900; color: #fff;
     text-shadow: 1px 1px 3px #000; text-align: center;
@@ -396,13 +390,6 @@
 
       <!-- 적(효소) 이름 -->
       <div id="enemy-name">PFK-1</div>
-      <!-- 적(효소) HP바 -->
-      <div id="enemy-hp-row" class="bar-row">
-        <div class="bar-track">
-          <div class="bar-fill high" id="activity-fill" style="width:80%"></div>
-        </div>
-        <span id="activity-val">80%</span>
-      </div>
 
       <!-- 적 스프라이트: 이미지 우측 언덕 -->
       <div id="enemy-sprite-area">
@@ -833,7 +820,9 @@ function setButtonsVisible(visible) {
 
 function setActivity(val) {
   const fill = document.getElementById('activity-fill');
-  document.getElementById('activity-val').textContent = `${val}%`;
+  if (!fill) return;
+  const valEl = document.getElementById('activity-val');
+  if (valEl) valEl.textContent = `${val}%`;
   fill.style.width = val + '%';
   fill.className = 'bar-fill ' + (val >= 60 ? 'high' : val >= 30 ? 'mid' : 'low');
 }
@@ -863,7 +852,9 @@ function selectFactor(btnIdx) {
   for (let i = 0; i < 4; i++) document.getElementById(`fbtn${i}`).disabled = true;
 
   document.getElementById('player-icon').style.display = 'none';
-  document.getElementById('selected-factor-icon').textContent = icon;
+  const imgSrc = factorImgMap[name];
+  const iconEl = document.getElementById('selected-factor-icon');
+  iconEl.innerHTML = imgSrc ? `<img src="${imgSrc}" alt="${name}">` : icon;
   document.getElementById('selected-factor-name').textContent = name;
   document.getElementById('selected-factor').style.display = 'flex';
 
