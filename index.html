@@ -911,7 +911,7 @@ function selectFactor(btnIdx) {
     iconEl.innerHTML = imgSrc ? `<img src="${imgSrc}" alt="${name}">` : icon;
     document.getElementById('selected-factor-name').textContent = name;
     document.getElementById('selected-factor').style.display = 'flex';
-  }, 1750);
+  }, 750);
 
   typeText(`가라, ${name}!\n어떤 기술을 사용하겠습니까?`, () => {
     const s = scenarios[currentRound];
