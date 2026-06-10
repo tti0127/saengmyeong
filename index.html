@@ -885,7 +885,7 @@ function selectFactor(btnIdx) {
 
   selectedFactor = { name, icon, isCorrect };
 
-  typeText(`${name}${josa(name, '이', '가')} 등장했다!\n어떤 기술을 사용하겠습니까?`, () => {
+  typeText(`가라, ${name}!\n어떤 기술을 사용하겠습니까?`, () => {
     const s = scenarios[currentRound];
     renderMoves(s);
     document.getElementById('factor-panel').style.display = 'none';
