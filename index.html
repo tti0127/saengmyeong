@@ -156,6 +156,21 @@
     80%     { transform: translateX(6px); }
   }
 
+  #zumdahl-throw {
+    position: absolute;
+    width: 9%;
+    display: none;
+    z-index: 50;
+    pointer-events: none;
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+  }
+  @keyframes throwBook {
+    0%   { left: 72%; top: 72%; transform: rotate(0deg) scale(1);   opacity: 1; }
+    60%  { left: 28%; top: 44%; transform: rotate(540deg) scale(0.7); opacity: 1; }
+    100% { left: 22%; top: 48%; transform: rotate(720deg) scale(0.05); opacity: 0; }
+  }
+
   /* ─── 액션 영역: 하단 우 ─── */
   #action-area {
     position: absolute;
@@ -403,6 +418,7 @@
 
       <!-- 플레이어 스프라이트 -->
       <div id="player-icon"></div>
+      <img id="zumdahl-throw" src="images/줌달.jpg" alt="줌달">
       <div id="selected-factor" style="display:none;">
         <div id="selected-factor-icon"></div>
         <div id="selected-factor-name"></div>
@@ -877,13 +893,24 @@ function selectFactor(btnIdx) {
   for (let i = 0; i < 4; i++) document.getElementById(`fbtn${i}`).disabled = true;
 
   document.getElementById('player-icon').style.display = 'none';
-  const imgSrc = factorImgMap[name];
-  const iconEl = document.getElementById('selected-factor-icon');
-  iconEl.innerHTML = imgSrc ? `<img src="${imgSrc}" alt="${name}">` : icon;
-  document.getElementById('selected-factor-name').textContent = name;
-  document.getElementById('selected-factor').style.display = 'flex';
 
   selectedFactor = { name, icon, isCorrect };
+
+  // 줌달 던지기 애니메이션
+  const book = document.getElementById('zumdahl-throw');
+  book.style.display = 'block';
+  book.style.animation = 'none';
+  book.offsetHeight; // reflow
+  book.style.animation = 'throwBook 0.75s ease-in forwards';
+
+  setTimeout(() => {
+    book.style.display = 'none';
+    const imgSrc = factorImgMap[name];
+    const iconEl = document.getElementById('selected-factor-icon');
+    iconEl.innerHTML = imgSrc ? `<img src="${imgSrc}" alt="${name}">` : icon;
+    document.getElementById('selected-factor-name').textContent = name;
+    document.getElementById('selected-factor').style.display = 'flex';
+  }, 750);
 
   typeText(`가라, ${name}!\n어떤 기술을 사용하겠습니까?`, () => {
     const s = scenarios[currentRound];
