@@ -357,7 +357,8 @@
     cursor: pointer;
   }
 
-  #battle-screen { display: none; }
+  #start-screen { display: none !important; }
+  #battle-screen { display: block; }
 </style>
 </head>
 <body>
@@ -1031,6 +1032,8 @@ function shuffleArray(arr) {
   }
   return arr;
 }
+
+startGame();
 </script>
 </body>
 </html>
