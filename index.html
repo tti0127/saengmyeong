@@ -53,20 +53,25 @@
   #round-info { font-weight: bold; color: #ffe44d; }
   #score-info { color: #ccc; }
 
-  /* ─── 적 HUD: 이미지 좌상단 박스 ─── */
-  #enemy-hud {
+  /* ─── 적 이름: 좌상단 박스 (y=14.3~23.3%, x=4.2~40%) ─── */
+  #enemy-name {
     position: absolute;
-    left: 3%; top: 4%;
-    width: 44%;
-    background: transparent;
-    padding: 0.5% 1.5%;
-    color: #eee;
+    top: 15%; left: 5%;
+    width: 33%;
+    font-size: clamp(8px, 1.4vw, 11px); font-weight: 900;
+    color: #eee; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     z-index: 2;
   }
-  #enemy-name { font-size: clamp(8px, 1.4vw, 11px); font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 1.5%; }
+  /* ─── 적 HP바: 박스 하단부 (y≈19%) ─── */
+  #enemy-hp-row {
+    position: absolute;
+    top: 19%; left: 4%;
+    width: 36%;
+    z-index: 2;
+  }
   .bar-row { display: flex; align-items: center; gap: 3%; }
   .hud-bar-label { font-size: clamp(6px, 1vw, 8px); font-weight: bold; color: #eee; white-space: nowrap; }
-  .bar-track { flex: 1; height: 5px; background: #555; border-radius: 2px; overflow: hidden; }
+  .bar-track { flex: 1; height: 5px; background: transparent; border-radius: 2px; overflow: hidden; }
   .bar-fill { height: 100%; border-radius: 2px; transition: width 0.6s ease, background 0.4s; }
   .bar-fill.high { background: #50c040; }
   .bar-fill.mid  { background: #e8c010; }
@@ -114,18 +119,22 @@
     background: rgba(0,0,0,0.6); padding: 1px 6px; border-radius: 6px;
   }
 
-  /* ─── 플레이어 HUD: 이미지 우측 하단 박스 ─── */
-  #player-hud {
+  /* ─── 플레이어 이름: 우측 이름박스 (y=50~58%, x=55~95%) ─── */
+  #player-label {
     position: absolute;
-    left: 56%; top: 55%;
-    width: 41%;
-    background: transparent;
-    padding: 0.5% 1.5%;
-    color: #eee;
+    top: 52%; left: 60%;
+    width: 35%;
+    font-size: clamp(7px, 1.2vw, 10px); font-weight: 900;
+    color: #eee; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     z-index: 2;
   }
-  #player-name-row { margin-bottom: 1.5%; }
-  #player-label { font-size: clamp(7px, 1.2vw, 10px); font-weight: 900; }
+  /* ─── 플레이어 HP바: y≈58.6~60.5%, x=73.7~93.4% ─── */
+  #player-hp-row {
+    position: absolute;
+    top: 59%; left: 73.5%;
+    width: 20%;
+    z-index: 2;
+  }
 
   /* ─── 텍스트 박스: 하단 좌 ─── */
   #text-box {
@@ -385,16 +394,14 @@
         <span id="score-info">점수: 0</span>
       </div>
 
-      <!-- 적(효소) HUD: 이미지 좌상단 박스 -->
-      <div id="enemy-hud">
-        <div id="enemy-name">PFK-1</div>
-        <div class="bar-row">
-          <span class="hud-bar-label">HP</span>
-          <div class="bar-track">
-            <div class="bar-fill high" id="activity-fill" style="width:80%"></div>
-          </div>
-          <span id="activity-val">80%</span>
+      <!-- 적(효소) 이름 -->
+      <div id="enemy-name">PFK-1</div>
+      <!-- 적(효소) HP바 -->
+      <div id="enemy-hp-row" class="bar-row">
+        <div class="bar-track">
+          <div class="bar-fill high" id="activity-fill" style="width:80%"></div>
         </div>
+        <span id="activity-val">80%</span>
       </div>
 
       <!-- 적 스프라이트: 이미지 우측 언덕 -->
@@ -413,15 +420,11 @@
         <div id="selected-factor-name"></div>
       </div>
 
-      <!-- 플레이어 HUD: 이미지 우측 하단 박스 -->
-      <div id="player-hud">
-        <div id="player-name-row">
-          <span id="player-label">🔬 연구자</span>
-        </div>
-        <div class="bar-row">
-          <span class="hud-bar-label">HP</span>
-          <div class="bar-track"><div class="bar-fill high" style="width:100%"></div></div>
-        </div>
+      <!-- 플레이어 이름 -->
+      <div id="player-label">🔬 연구자</div>
+      <!-- 플레이어 HP바 -->
+      <div id="player-hp-row" class="bar-row">
+        <div class="bar-track"><div class="bar-fill high" style="width:100%"></div></div>
       </div>
 
       <!-- 텍스트 박스: 이미지 하단 좌 검은 박스 -->
