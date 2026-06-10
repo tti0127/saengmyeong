@@ -58,14 +58,14 @@
     position: absolute;
     left: 2%; top: 14%;
     width: 42%;
-    background: rgba(0,0,0,0.25);
+    background: transparent;
     padding: 1% 2%;
     color: #eee;
     z-index: 2;
   }
   #enemy-trainer { font-size: clamp(6px, 0.9vw, 8px); color: #bbb; margin-bottom: 1%; }
   #enemy-name-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.5%; }
-  #enemy-name { font-size: clamp(9px, 1.5vw, 12px); font-weight: 900; }
+  #enemy-name { font-size: clamp(8px, 1.3vw, 11px); font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80%; }
   #enemy-lv   { font-size: clamp(7px, 1vw, 9px); color: #bbb; }
   #enemy-sub  { font-size: clamp(6px, 0.9vw, 8px); color: #ccc; margin-bottom: 1%; }
   .bar-row { display: flex; align-items: center; gap: 3%; }
@@ -123,7 +123,7 @@
     position: absolute;
     left: 55%; top: 48%;
     width: 44%;
-    background: rgba(0,0,0,0.25);
+    background: transparent;
     padding: 1% 2%;
     color: #eee;
     z-index: 2;
