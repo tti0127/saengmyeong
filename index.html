@@ -695,15 +695,15 @@ const scenarios = [
 // ─────────────────────────────
 let currentRound = 0;
 let score = 0;
-let playerHP = 3;
+let playerHP = 8;
 let selectedFactor = null;
 
 function updatePlayerHP() {
   const fill = document.getElementById('player-hp-fill');
   if (!fill) return;
-  const pct = Math.max(0, playerHP / 3 * 100);
+  const pct = Math.max(0, playerHP / 8 * 100);
   fill.style.width = pct + '%';
-  fill.className = 'bar-fill ' + (playerHP >= 3 ? 'high' : playerHP >= 2 ? 'mid' : 'low');
+  fill.className = 'bar-fill ' + (playerHP >= 6 ? 'high' : playerHP >= 3 ? 'mid' : 'low');
 }
 
 function startGame() {
@@ -711,7 +711,7 @@ function startGame() {
   document.getElementById('battle-screen').style.display = 'block';
   currentRound = 0;
   score = 0;
-  playerHP = 3;
+  playerHP = 8;
   updatePlayerHP();
   loadRound();
 }
@@ -761,6 +761,8 @@ function loadRound() {
   const introName = s.enzyme.split('\n')[0];
   typeText(`앗! 야생의 ${introName}${josa(introName, '이', '가')} 등장했다!`, () => {
     img.onload = () => {
+      img.style.display = 'block';
+      fallback.style.display = 'none';
       spriteArea.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
       spriteArea.style.opacity = '1';
       spriteArea.style.transform = 'translateX(0)';
@@ -974,7 +976,7 @@ function retryGame() {
   document.getElementById('end-screen').style.display = 'none';
   currentRound = 0;
   score = 0;
-  playerHP = 3;
+  playerHP = 8;
   updatePlayerHP();
   document.getElementById('battle-screen').style.display = 'block';
   loadRound();
